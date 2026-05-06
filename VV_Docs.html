@@ -1,0 +1,3172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<title>VV Docs ProMax ✦ God Mode</title>
+<meta name="theme-color" content="#0d1117">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://accounts.google.com/gsi/client" async></script>
+<script src="https://apis.google.com/js/api.js" async></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+/* ========= CSS VARIABLES ========= */
+:root {
+  --mT: 96px; --mL: 96px; --mB: 72px; --mR: 72px;
+  --A4w: 794px; --A4h: 1123px;
+  --textH: 955px; --textW: 626px;
+  --bg: #0d1117; --bg2: #161b22; --bg3: #1f2937;
+  --panel: #161b22; --panel2: #1f2937;
+  --border: #30363d; --border2: #444c56;
+  --text: #e6edf3; --text2: #8b949e; --text3: #6e7681;
+  --accent: #58a6ff; --accent2: #7c3aed; --accent3: #10b981;
+  --danger: #f85149; --warn: #d29922;
+  --page-bg: #ffffff; --page-shadow: 0 4px 32px rgba(0,0,0,.6);
+  --toolbar-h: 44px; --menubar-h: 38px; --tabbar-h: 36px;
+  --layers-w: 220px; --tool-w: 48px;
+  --radius: 6px; --radius2: 10px;
+  --font-ui: 'Outfit', sans-serif;
+  --font-doc: 'Noto Serif', serif;
+  --zoom: 1;
+  --canvas-pad: 32px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font-ui)}
+
+/* ========= AUTH SCREEN ========= */
+#auth-screen{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#0d1117 0%,#1a1f35 50%,#0d1117 100%);
+  z-index:9999;flex-direction:column;gap:24px;
+}
+.auth-logo{font-size:48px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-2px}
+.auth-tagline{color:var(--text2);font-size:15px;text-align:center;max-width:320px}
+.auth-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;
+  padding:32px;display:flex;flex-direction:column;gap:16px;align-items:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);min-width:300px}
+.auth-features{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.auth-feat{background:var(--bg3);border:1px solid var(--border);border-radius:20px;
+  padding:4px 12px;font-size:12px;color:var(--text2)}
+#g-signin-btn{width:100%;height:44px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500}
+.auth-skip{color:var(--text2);font-size:13px;cursor:pointer;text-decoration:underline}
+.auth-skip:hover{color:var(--text)}
+.setup-warning{background:rgba(210,153,34,.1);border:1px solid var(--warn);border-radius:8px;
+  padding:12px 16px;font-size:12px;color:var(--warn);max-width:340px;text-align:center;line-height:1.5}
+
+/* ========= MAIN APP ========= */
+#app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
+#app[hidden]{display:none!important}
+
+/* MENU BAR */
+#menu-bar{
+  height:var(--menubar-h);background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 8px;gap:2px;flex-shrink:0;z-index:100;
+}
+.menu-logo{font-size:16px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-right:8px;white-space:nowrap}
+.menu-item{position:relative;padding:4px 10px;border-radius:4px;cursor:pointer;
+  font-size:13px;color:var(--text);white-space:nowrap;user-select:none}
+.menu-item:hover,.menu-item.active{background:var(--bg3)}
+.dropdown{position:absolute;top:100%;left:0;background:var(--panel);border:1px solid var(--border);
+  border-radius:var(--radius2);min-width:200px;z-index:1000;display:none;padding:4px;
+  box-shadow:0 8px 32px rgba(0,0,0,.6);margin-top:2px}
+.dropdown.show{display:block}
+.dd-item{padding:7px 14px;border-radius:4px;cursor:pointer;font-size:13px;
+  display:flex;align-items:center;gap:10px;color:var(--text)}
+.dd-item:hover{background:var(--bg3)}
+.dd-item .shortcut{margin-left:auto;color:var(--text3);font-size:11px}
+.dd-sep{height:1px;background:var(--border);margin:4px 0}
+.menu-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent2);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;cursor:pointer}
+.user-avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+
+/* TOOLBAR */
+#toolbar{
+  height:var(--toolbar-h);background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 8px;gap:2px;flex-shrink:0;overflow-x:auto;
+  scrollbar-width:none;z-index:90;
+}
+#toolbar::-webkit-scrollbar{display:none}
+.tb-sep{width:1px;height:24px;background:var(--border);margin:0 4px;flex-shrink:0}
+.tb-btn{
+  min-width:30px;height:30px;border-radius:4px;border:none;background:transparent;
+  color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:14px;padding:0 6px;flex-shrink:0;transition:background .15s;position:relative;
+}
+.tb-btn:hover{background:var(--bg3)}
+.tb-btn.active{background:rgba(88,166,255,.2);color:var(--accent)}
+.tb-btn[data-tooltip]:hover::after{
+  content:attr(data-tooltip);position:absolute;top:110%;left:50%;transform:translateX(-50%);
+  background:var(--panel);border:1px solid var(--border);padding:4px 8px;border-radius:4px;
+  font-size:11px;white-space:nowrap;pointer-events:none;z-index:999;
+}
+.tb-select{
+  height:28px;background:var(--bg3);border:1px solid var(--border);color:var(--text);
+  border-radius:4px;padding:0 6px;font-size:13px;cursor:pointer;flex-shrink:0;outline:none;
+  font-family:var(--font-ui);
+}
+.tb-input{
+  height:28px;background:var(--bg3);border:1px solid var(--border);color:var(--text);
+  border-radius:4px;padding:0 6px;font-size:13px;flex-shrink:0;outline:none;
+  font-family:var(--font-ui);
+}
+.tb-input:focus,.tb-select:focus{border-color:var(--accent)}
+#font-size-input{width:46px;text-align:center}
+#font-family-select{width:140px}
+.color-btn{width:30px;height:30px;border-radius:4px;border:2px solid var(--border);
+  cursor:pointer;flex-shrink:0;overflow:hidden;position:relative}
+.color-btn input[type=color]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.color-swatch{position:absolute;inset:0;pointer-events:none}
+
+/* ICON BUTTONS */
+.icon-btn{
+  width:36px;height:36px;border-radius:8px;border:none;background:transparent;
+  color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:16px;transition:all .15s;flex-shrink:0;
+}
+.icon-btn:hover{background:var(--bg3);transform:scale(1.05)}
+.icon-btn.purple{color:#a855f7}
+.icon-btn.blue{color:var(--accent)}
+.icon-btn.green{color:var(--accent3)}
+
+/* TAB BAR */
+#tab-bar{
+  height:var(--tabbar-h);background:var(--bg);border-bottom:1px solid var(--border);
+  display:flex;align-items:flex-end;padding:0 8px;gap:2px;flex-shrink:0;overflow-x:auto;
+  scrollbar-width:none;z-index:80;
+}
+#tab-bar::-webkit-scrollbar{display:none}
+.doc-tab{
+  min-width:120px;max-width:180px;height:28px;background:var(--bg2);
+  border:1px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;
+  display:flex;align-items:center;padding:0 10px;gap:6px;cursor:pointer;
+  font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;flex-shrink:0;
+}
+.doc-tab.active{background:var(--bg2);color:var(--text);border-color:var(--border2)}
+.doc-tab .tab-close{margin-left:auto;color:var(--text3);font-size:10px;flex-shrink:0;
+  width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.doc-tab .tab-close:hover{background:var(--danger);color:white}
+.tab-add{width:28px;height:28px;border:1px solid var(--border);border-bottom:none;
+  border-radius:6px 6px 0 0;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--text3);font-size:16px;flex-shrink:0}
+.tab-add:hover{color:var(--text);background:var(--bg2)}
+
+/* MAIN LAYOUT */
+#main-layout{
+  flex:1;display:flex;overflow:hidden;position:relative;
+}
+
+/* TOOL PANEL */
+#tool-panel{
+  width:var(--tool-w);background:var(--panel);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;padding:8px 4px;gap:4px;
+  flex-shrink:0;z-index:70;overflow-y:auto;scrollbar-width:none;
+}
+#tool-panel::-webkit-scrollbar{display:none}
+.tool-btn{
+  width:38px;height:38px;border-radius:8px;border:none;background:transparent;
+  color:var(--text2);cursor:pointer;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;font-size:16px;gap:2px;
+  transition:all .15s;position:relative;
+}
+.tool-btn:hover{background:var(--bg3);color:var(--text)}
+.tool-btn.active{background:rgba(88,166,255,.2);color:var(--accent)}
+.tool-btn span.label{font-size:8px;line-height:1}
+.tool-sep{width:30px;height:1px;background:var(--border);margin:2px 0}
+
+/* CANVAS AREA */
+#canvas-area{
+  flex:1;overflow:auto;background:var(--bg);position:relative;
+  display:flex;justify-content:center;padding:var(--canvas-pad);
+  gap:var(--canvas-pad);
+}
+#canvas-area::-webkit-scrollbar{width:8px;height:8px}
+#canvas-area::-webkit-scrollbar-track{background:var(--bg)}
+#canvas-area::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+#doc-canvas{
+  display:flex;flex-direction:column;align-items:center;gap:24px;
+  min-height:100%;width:fit-content;
+  transform-origin:top center;
+  transform:scale(var(--zoom));
+}
+
+/* A4 PAGE */
+.a4-page{
+  width:var(--A4w);height:var(--A4h);background:var(--page-bg);
+  box-shadow:var(--page-shadow);position:relative;flex-shrink:0;
+  overflow:hidden;
+}
+.a4-page .margin-visual{
+  position:absolute;
+  top:var(--mT);left:var(--mL);
+  width:calc(var(--A4w) - var(--mL) - var(--mR));
+  height:calc(var(--A4h) - var(--mT) - var(--mB));
+  border:1px dashed rgba(0,120,255,.2);
+  pointer-events:none;z-index:1;
+}
+.a4-page .margin-label{
+  position:absolute;font-size:8px;color:rgba(0,120,255,.35);
+  pointer-events:none;font-family:var(--font-ui);z-index:2;
+}
+.a4-page .ml-top{top:calc(var(--mT) - 14px);left:calc(var(--A4w)/2);transform:translateX(-50%)}
+.a4-page .ml-left{top:calc(var(--A4h)/2);left:4px;transform:translateY(-50%) rotate(-90deg);transform-origin:center}
+.a4-page .ml-right{top:calc(var(--A4h)/2);right:2px;transform:translateY(-50%) rotate(90deg);transform-origin:center}
+.a4-page .ml-bottom{bottom:calc(var(--mB) - 14px);left:calc(var(--A4w)/2);transform:translateX(-50%)}
+
+.text-layer{
+  position:absolute;
+  top:var(--mT);left:var(--mL);
+  width:var(--textW);
+  height:var(--textH);
+  overflow:hidden;
+  outline:none;
+  font-family:var(--font-doc);
+  font-size:12pt;line-height:1.6;
+  color:#000;word-wrap:break-word;word-break:break-word;
+  caret-color:#0066cc;
+}
+.text-layer:empty::before{content:'Start typing...';color:#aaa;pointer-events:none}
+.text-layer:focus{overflow:hidden}
+.text-layer p,.text-layer div{min-height:1.6em;word-wrap:break-word}
+.text-layer br{display:block}
+
+.page-num{
+  position:absolute;bottom:20px;right:var(--mR);
+  font-size:10px;color:#999;font-family:var(--font-doc);pointer-events:none;
+}
+.page-wrapper{position:relative;display:inline-block}
+.del-page-btn{
+  position:absolute;top:8px;right:-48px;
+  width:36px;height:28px;background:var(--danger);color:white;
+  border:none;border-radius:4px;cursor:pointer;font-size:11px;
+  opacity:0;transition:opacity .2s;display:flex;align-items:center;justify-content:center;
+}
+.page-wrapper:hover .del-page-btn{opacity:1}
+.add-page-btn{
+  width:var(--A4w);height:44px;background:var(--bg2);
+  border:2px dashed var(--border2);border-radius:8px;cursor:pointer;
+  color:var(--text2);font-size:13px;display:flex;align-items:center;justify-content:center;
+  gap:8px;transition:all .15s;
+}
+.add-page-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(88,166,255,.05)}
+
+/* IMAGE OVERLAY */
+.img-overlay{
+  position:absolute;border:2px solid var(--accent);cursor:move;
+  user-select:none;touch-action:none;
+}
+.img-overlay img{width:100%;height:100%;display:block;pointer-events:none;user-select:none}
+.resize-handle{
+  position:absolute;width:12px;height:12px;background:var(--accent);border:2px solid white;
+  border-radius:2px;z-index:10;touch-action:none;
+}
+.rh-tl{top:-6px;left:-6px;cursor:nw-resize}
+.rh-tc{top:-6px;left:50%;margin-left:-6px;cursor:n-resize}
+.rh-tr{top:-6px;right:-6px;cursor:ne-resize}
+.rh-ml{top:50%;margin-top:-6px;left:-6px;cursor:w-resize}
+.rh-mr{top:50%;margin-top:-6px;right:-6px;cursor:e-resize}
+.rh-bl{bottom:-6px;left:-6px;cursor:sw-resize}
+.rh-bc{bottom:-6px;left:50%;margin-left:-6px;cursor:s-resize}
+.rh-br{bottom:-6px;right:-6px;cursor:se-resize}
+.rotate-handle{
+  position:absolute;top:-28px;left:50%;margin-left:-8px;
+  width:16px;height:16px;background:var(--accent2);border-radius:50%;
+  cursor:grab;z-index:10;display:flex;align-items:center;justify-content:center;
+  font-size:10px;color:white;
+}
+.img-overlay.selected{outline:2px solid var(--accent2)}
+
+/* LAYERS PANEL */
+#layers-panel{
+  width:var(--layers-w);background:var(--panel);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;transition:width .3s;overflow:hidden;z-index:70;
+}
+#layers-panel.closed{width:0;border:none}
+#layers-header{
+  padding:10px 12px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+#layers-header span{font-size:13px;font-weight:600}
+.layer-item{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;
+  border-bottom:1px solid var(--border);cursor:pointer;
+  transition:background .1s;font-size:12px;
+}
+.layer-item:hover{background:var(--bg3)}
+.layer-item.selected{background:rgba(88,166,255,.1);border-left:2px solid var(--accent)}
+.layer-thumb{width:32px;height:24px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:3px;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;
+  font-size:10px;}
+.layer-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.layer-lock{color:var(--text3);font-size:10px;flex-shrink:0}
+.layer-actions{display:flex;gap:2px;flex-shrink:0}
+.layer-act-btn{width:20px;height:20px;border:none;background:transparent;color:var(--text3);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;border-radius:3px}
+.layer-act-btn:hover{background:var(--bg3);color:var(--text)}
+
+/* STATUS BAR */
+#status-bar{
+  height:26px;background:var(--accent2);
+  display:flex;align-items:center;padding:0 12px;gap:16px;
+  font-size:11px;color:rgba(255,255,255,.9);flex-shrink:0;z-index:60;
+}
+.status-item{display:flex;align-items:center;gap:4px}
+#status-bar .sep{opacity:.4}
+
+/* FLOATING TOOLBAR */
+#float-toolbar{
+  position:fixed;background:var(--panel);border:1px solid var(--border2);
+  border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.5);
+  display:flex;align-items:center;gap:2px;padding:4px;z-index:2000;
+  display:none;pointer-events:auto;
+}
+#float-toolbar.show{display:flex}
+.ft-btn{
+  width:30px;height:28px;border-radius:4px;border:none;background:transparent;
+  color:var(--text);cursor:pointer;font-size:13px;display:flex;align-items:center;
+  justify-content:center;transition:background .1s;
+}
+.ft-btn:hover{background:var(--bg3)}
+.ft-btn.active{background:rgba(88,166,255,.2);color:var(--accent)}
+.ft-sep{width:1px;height:20px;background:var(--border);margin:0 2px}
+
+/* CONTEXT MENU */
+#ctx-menu{
+  position:fixed;background:var(--panel);border:1px solid var(--border);
+  border-radius:var(--radius2);padding:4px;min-width:180px;
+  box-shadow:0 8px 32px rgba(0,0,0,.6);z-index:3000;display:none;
+}
+#ctx-menu.show{display:block}
+.ctx-item{padding:7px 12px;border-radius:4px;cursor:pointer;font-size:13px;
+  display:flex;align-items:center;gap:10px;color:var(--text)}
+.ctx-item:hover{background:var(--bg3)}
+.ctx-item.danger{color:var(--danger)}
+.ctx-sep{height:1px;background:var(--border);margin:4px 0}
+
+/* TOAST */
+#toast-container{position:fixed;bottom:20px;right:20px;z-index:9000;display:flex;flex-direction:column;gap:8px}
+.toast{
+  background:var(--panel);border:1px solid var(--border2);border-radius:8px;
+  padding:10px 16px;font-size:13px;max-width:300px;
+  box-shadow:0 4px 16px rgba(0,0,0,.4);animation:slideIn .3s ease;
+  display:flex;align-items:center;gap:8px;
+}
+.toast.success{border-color:var(--accent3);color:var(--accent3)}
+.toast.error{border-color:var(--danger);color:var(--danger)}
+.toast.info{border-color:var(--accent);color:var(--accent)}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(20px)}}
+
+/* MODALS */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:4000;
+  display:flex;align-items:center;justify-content:center;padding:16px;
+  backdrop-filter:blur(4px);
+}
+.modal-overlay.hidden{display:none}
+.modal{
+  background:var(--bg2);border:1px solid var(--border2);border-radius:16px;
+  width:100%;max-width:520px;max-height:85vh;display:flex;flex-direction:column;
+  overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6);
+}
+.modal-header{
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.modal-header h3{font-size:15px;font-weight:600}
+.modal-close{width:28px;height:28px;border:none;background:transparent;color:var(--text2);
+  cursor:pointer;border-radius:4px;font-size:14px;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:var(--bg3);color:var(--text)}
+.modal-body{flex:1;overflow-y:auto;padding:16px 20px}
+.modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
+
+/* TABS IN MODAL */
+.modal-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin:-16px -20px 16px;padding:0 20px}
+.modal-tab{padding:10px 16px;font-size:13px;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.modal-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* FORM ELEMENTS */
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;color:var(--text2);margin-bottom:6px;display:block}
+.form-input{
+  width:100%;height:38px;background:var(--bg3);border:1px solid var(--border);
+  color:var(--text);border-radius:6px;padding:0 12px;font-size:13px;outline:none;
+  font-family:var(--font-ui);
+}
+.form-input:focus{border-color:var(--accent)}
+.form-textarea{
+  width:100%;background:var(--bg3);border:1px solid var(--border);
+  color:var(--text);border-radius:6px;padding:10px 12px;font-size:13px;outline:none;
+  font-family:var(--font-ui);resize:vertical;min-height:80px;
+}
+.form-textarea:focus{border-color:var(--accent)}
+.btn{
+  padding:8px 18px;border-radius:6px;border:none;cursor:pointer;font-size:13px;
+  font-weight:500;font-family:var(--font-ui);transition:all .15s;display:flex;
+  align-items:center;gap:6px;
+}
+.btn-primary{background:var(--accent);color:white}
+.btn-primary:hover{background:#4493e8}
+.btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--border)}
+.btn-danger{background:var(--danger);color:white}
+.btn-success{background:var(--accent3);color:white}
+.btn-purple{background:var(--accent2);color:white}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* DRIVE FILE LIST */
+.drive-file{
+  display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;
+  cursor:pointer;transition:background .1s;
+}
+.drive-file:hover{background:var(--bg3)}
+.drive-file .file-icon{font-size:18px;flex-shrink:0}
+.drive-file .file-info{flex:1;overflow:hidden}
+.drive-file .file-name{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drive-file .file-size{font-size:11px;color:var(--text3)}
+
+/* FONT GRID */
+.font-grid{display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto}
+.font-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;
+  cursor:pointer;transition:background .1s;border:1px solid transparent}
+.font-item:hover,.font-item.selected{background:var(--bg3);border-color:var(--border)}
+.font-preview{font-size:16px;flex:1}
+.font-name{font-size:11px;color:var(--text3)}
+
+/* SIGNATURE CANVAS */
+#sig-canvas{
+  width:100%;height:200px;background:white;border:2px solid var(--border);
+  border-radius:8px;cursor:crosshair;touch-action:none;display:block;
+}
+
+/* MOBILE BANNER */
+#mobile-banner{
+  position:fixed;top:0;left:0;right:0;z-index:5000;
+  background:var(--accent);color:white;padding:10px 16px;
+  font-size:13px;display:none;align-items:center;gap:10px;
+  box-shadow:0 2px 16px rgba(0,0,0,.4);
+}
+#mobile-banner.show{display:flex}
+#mobile-banner .close-banner{margin-left:auto;cursor:pointer;font-size:14px}
+
+/* SELECT ALL HIGHLIGHT */
+.all-selected .a4-page{outline:3px solid var(--accent)}
+
+/* SAVE OPTIONS */
+.save-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.save-opt{background:var(--bg3);border:2px solid var(--border);border-radius:8px;
+  padding:12px;cursor:pointer;text-align:center;transition:all .15s;font-size:13px}
+.save-opt:hover{border-color:var(--accent);background:rgba(88,166,255,.05)}
+.save-opt.selected{border-color:var(--accent);background:rgba(88,166,255,.1)}
+.save-opt .opt-icon{font-size:24px;margin-bottom:4px}
+.save-opt .opt-label{font-size:12px;color:var(--text2)}
+
+/* FILE NAME AI */
+.ai-names{display:flex;flex-direction:column;gap:4px;max-height:160px;overflow-y:auto;margin-top:8px}
+.ai-name{padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;
+  background:var(--bg3);border:1px solid var(--border)}
+.ai-name:hover{border-color:var(--accent)}
+
+/* SHARE GRID */
+.share-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.share-btn2{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:12px 8px;border-radius:10px;cursor:pointer;transition:all .15s;
+  background:var(--bg3);border:1px solid var(--border);font-size:11px;color:var(--text2);
+}
+.share-btn2:hover{background:var(--border);color:var(--text);transform:translateY(-2px)}
+.share-btn2 .share-icon{font-size:22px}
+
+/* LOADING SPINNER */
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border2);
+  border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TOGGLE */
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{
+  position:absolute;inset:0;background:var(--bg3);border-radius:12px;
+  cursor:pointer;transition:.3s;border:1px solid var(--border);
+}
+.toggle-slider::before{
+  content:'';position:absolute;height:18px;width:18px;left:2px;bottom:2px;
+  background:var(--text2);border-radius:50%;transition:.3s;
+}
+.toggle input:checked + .toggle-slider{background:var(--accent)}
+.toggle input:checked + .toggle-slider::before{transform:translateX(20px);background:white}
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 768px) {
+  :root{--layers-w:0px;--tool-w:0px;--canvas-pad:12px}
+  #tool-panel{display:none}
+  #layers-panel{position:fixed;right:0;top:0;bottom:0;width:220px!important;z-index:500;transform:translateX(100%);transition:transform .3s}
+  #layers-panel.mobile-open{transform:translateX(0)}
+  #layers-panel.closed{width:220px!important;transform:translateX(100%)}
+  .menu-logo{font-size:14px}
+  .menu-item{padding:4px 7px;font-size:12px}
+  #doc-canvas{transform-origin:top center}
+}
+@media (max-width:480px){
+  .share-grid{grid-template-columns:repeat(3,1fr)}
+  .modal{max-height:90vh}
+}
+
+/* PRINT */
+@media print {
+  body{background:white!important}
+  #auth-screen,#menu-bar,#toolbar,#tab-bar,#layers-panel,#tool-panel,#status-bar,
+  .del-page-btn,.add-page-btn,#float-toolbar,#ctx-menu,#toast-container{display:none!important}
+  #canvas-area{overflow:visible;padding:0}
+  #doc-canvas{transform:none!important;gap:0}
+  .a4-page{box-shadow:none;margin:0;page-break-after:always}
+  .margin-visual,.margin-label{display:none!important}
+}
+
+/* DRAG INDICATOR */
+.drag-indicator{
+  position:fixed;background:rgba(88,166,255,.3);border:2px solid var(--accent);
+  border-radius:4px;pointer-events:none;z-index:9999;display:none;
+}
+.drag-indicator.show{display:block}
+.drop-cursor{
+  width:2px;background:var(--accent);position:absolute;pointer-events:none;z-index:999;
+  animation:blink .7s infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* FOLDER CREATE */
+.folder-input-row{display:flex;gap:8px;margin-top:8px}
+.folder-input-row .form-input{flex:1}
+
+/* PAGE DRAG OVERLAY */
+.page-drag-target::after{
+  content:'Drop here';position:absolute;inset:0;
+  background:rgba(88,166,255,.1);border:3px dashed var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;color:var(--accent);pointer-events:none;z-index:50;
+}
+</style>
+</head>
+<body>
+
+<!-- ===== AUTH SCREEN ===== -->
+<div id="auth-screen">
+  <div class="auth-logo">VV Docs</div>
+  <div class="auth-tagline">ProMax God Mode ✦ Premium Edition</div>
+  <div class="auth-card">
+    <div class="auth-features">
+      <span class="auth-feat">📄 A4 Auto Pages</span>
+      <span class="auth-feat">☁ Google Drive</span>
+      <span class="auth-feat">🎨 Layers</span>
+      <span class="auth-feat">📱 Mobile</span>
+    </div>
+    <div style="width:100%" id="g-signin-area">
+      <div id="g-signin-btn"></div>
+    </div>
+    <div class="setup-warning" id="setup-warn">
+      ⚠ To enable Google Sign-In, add your<br>
+      <b>Client ID</b> in the CONFIG section at top<br>
+      of this file and host it on a web server.
+    </div>
+    <a class="auth-skip" onclick="skipAuth()">Continue without Sign-In →</a>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app" hidden>
+
+  <!-- MENU BAR -->
+  <div id="menu-bar">
+    <div class="menu-logo">VV</div>
+    <div class="menu-item" id="m-file" onclick="toggleMenu('file-dd')">File
+      <div class="dropdown" id="file-dd">
+        <div class="dd-item" onclick="newDocument()"><i class="fa fa-file"></i>New<span class="shortcut">Ctrl+N</span></div>
+        <div class="dd-item" onclick="openDriveModal()"><i class="fa fa-folder-open"></i>Open from Drive</div>
+        <div class="dd-item" onclick="openSaveModal()"><i class="fa fa-save"></i>Save<span class="shortcut">Ctrl+S</span></div>
+        <div class="dd-item" onclick="printDoc()"><i class="fa fa-print"></i>Print<span class="shortcut">Ctrl+P</span></div>
+        <div class="dd-sep"></div>
+        <div class="dd-item" onclick="openShareModal()"><i class="fa fa-share-alt"></i>Share</div>
+      </div>
+    </div>
+    <div class="menu-item" id="m-edit" onclick="toggleMenu('edit-dd')">Edit
+      <div class="dropdown" id="edit-dd">
+        <div class="dd-item" onclick="execCmd('undo')"><i class="fa fa-undo"></i>Undo<span class="shortcut">Ctrl+Z</span></div>
+        <div class="dd-item" onclick="execCmd('redo')"><i class="fa fa-redo"></i>Redo<span class="shortcut">Ctrl+Y</span></div>
+        <div class="dd-sep"></div>
+        <div class="dd-item" onclick="execCmd('cut')"><i class="fa fa-cut"></i>Cut<span class="shortcut">Ctrl+X</span></div>
+        <div class="dd-item" onclick="execCmd('copy')"><i class="fa fa-copy"></i>Copy<span class="shortcut">Ctrl+C</span></div>
+        <div class="dd-item" onclick="pasteFormatted()"><i class="fa fa-paste"></i>Paste<span class="shortcut">Ctrl+V</span></div>
+        <div class="dd-sep"></div>
+        <div class="dd-item" onclick="selectAll()"><i class="fa fa-object-group"></i>Select All<span class="shortcut">Ctrl+A</span></div>
+        <div class="dd-item" onclick="findReplace()"><i class="fa fa-search"></i>Find & Replace<span class="shortcut">Ctrl+H</span></div>
+      </div>
+    </div>
+    <div class="menu-item" id="m-view" onclick="toggleMenu('view-dd')">View
+      <div class="dropdown" id="view-dd">
+        <div class="dd-item" onclick="zoomIn()"><i class="fa fa-search-plus"></i>Zoom In<span class="shortcut">Ctrl++</span></div>
+        <div class="dd-item" onclick="zoomOut()"><i class="fa fa-search-minus"></i>Zoom Out<span class="shortcut">Ctrl+-</span></div>
+        <div class="dd-item" onclick="zoomFit()"><i class="fa fa-expand-arrows-alt"></i>Fit to Screen</div>
+        <div class="dd-sep"></div>
+        <div class="dd-item" onclick="toggleLayers()"><i class="fa fa-layer-group"></i>Layers Panel</div>
+        <div class="dd-item" onclick="toggleRulers()"><i class="fa fa-ruler"></i>Show Margins</div>
+        <div class="dd-item" onclick="toggleDarkPage()"><i class="fa fa-moon"></i>Dark Page Mode</div>
+      </div>
+    </div>
+    <div class="menu-item" id="m-insert" onclick="toggleMenu('insert-dd')">Insert
+      <div class="dropdown" id="insert-dd">
+        <div class="dd-item" onclick="insertImage()"><i class="fa fa-image"></i>Image</div>
+        <div class="dd-item" onclick="openSigModal()"><i class="fa fa-signature"></i>Signature</div>
+        <div class="dd-item" onclick="insertTable()"><i class="fa fa-table"></i>Table</div>
+        <div class="dd-item" onclick="insertHRule()"><i class="fa fa-minus"></i>Horizontal Line</div>
+        <div class="dd-item" onclick="insertPageBreak()"><i class="fa fa-file-alt"></i>Page Break</div>
+        <div class="dd-item" onclick="insertLink()"><i class="fa fa-link"></i>Link</div>
+        <div class="dd-sep"></div>
+        <div class="dd-item" onclick="addPage()"><i class="fa fa-plus-square"></i>New Page</div>
+      </div>
+    </div>
+    <div class="menu-item" id="m-format" onclick="toggleMenu('format-dd')">Format
+      <div class="dropdown" id="format-dd">
+        <div class="dd-item" onclick="execCmd('bold')"><i class="fa fa-bold"></i>Bold<span class="shortcut">Ctrl+B</span></div>
+        <div class="dd-item" onclick="execCmd('italic')"><i class="fa fa-italic"></i>Italic<span class="shortcut">Ctrl+I</span></div>
+        <div class="dd-item" onclick="execCmd('underline')"><i class="fa fa-underline"></i>Underline<span class="shortcut">Ctrl+U</span></div>
+        <div class="dd-item" onclick="execCmd('strikeThrough')"><i class="fa fa-strikethrough"></i>Strikethrough</div>
+        <div class="dd-sep"></div>
+        <div class="dd-item" onclick="setAlignment('left')"><i class="fa fa-align-left"></i>Align Left</div>
+        <div class="dd-item" onclick="setAlignment('center')"><i class="fa fa-align-center"></i>Center</div>
+        <div class="dd-item" onclick="setAlignment('right')"><i class="fa fa-align-right"></i>Align Right</div>
+        <div class="dd-item" onclick="setAlignment('justify')"><i class="fa fa-align-justify"></i>Justify</div>
+        <div class="dd-sep"></div>
+        <div class="dd-item" onclick="setLineSpacing(1.0)">Line Spacing: 1.0</div>
+        <div class="dd-item" onclick="setLineSpacing(1.5)">Line Spacing: 1.5</div>
+        <div class="dd-item" onclick="setLineSpacing(2.0)">Line Spacing: 2.0</div>
+      </div>
+    </div>
+    <div class="menu-item" id="m-tools" onclick="toggleMenu('tools-dd')">Tools
+      <div class="dropdown" id="tools-dd">
+        <div class="dd-item" onclick="wordCount()"><i class="fa fa-calculator"></i>Word Count</div>
+        <div class="dd-item" onclick="openFontModal()"><i class="fa fa-font"></i>Font Manager</div>
+        <div class="dd-item" onclick="openDriveModal()"><i class="fa fa-cloud"></i>Drive Settings</div>
+        <div class="dd-sep"></div>
+        <div class="dd-item" onclick="clearFormatting()"><i class="fa fa-remove-format"></i>Clear Formatting</div>
+      </div>
+    </div>
+    <div class="menu-right">
+      <button class="icon-btn purple" onclick="toggleLayers()" title="Layers Panel">📋</button>
+      <button class="icon-btn blue" onclick="openDriveModal()" title="Google Drive">☁</button>
+      <button class="icon-btn green" onclick="quickSave()" title="Quick Save">💾</button>
+      <div class="user-avatar" id="user-avatar" onclick="showUserMenu()">?</div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div id="toolbar">
+    <button class="tb-btn" onclick="execCmd('undo')" data-tooltip="Undo"><i class="fa fa-undo"></i></button>
+    <button class="tb-btn" onclick="execCmd('redo')" data-tooltip="Redo"><i class="fa fa-redo"></i></button>
+    <span class="tb-sep"></span>
+    <button class="tb-btn" onclick="insertImage()" data-tooltip="Image"><i class="fa fa-image"></i></button>
+    <button class="tb-btn" onclick="openSigModal()" data-tooltip="Signature"><i class="fa fa-signature"></i></button>
+    <span class="tb-sep"></span>
+    <select class="tb-select" id="font-family-select" onchange="setFont(this.value)" title="Font Family">
+      <option value="'Noto Serif', serif">Noto Serif</option>
+      <option value="Georgia, serif">Georgia</option>
+      <option value="Arial, sans-serif">Arial</option>
+      <option value="'Times New Roman', serif">Times New Roman</option>
+      <option value="Courier New, monospace">Courier New</option>
+      <option value="Verdana, sans-serif">Verdana</option>
+    </select>
+    <input class="tb-input" id="font-size-input" type="number" value="12" min="6" max="96" onchange="setFontSize(this.value)" title="Font Size">
+    <span class="tb-sep"></span>
+    <button class="tb-btn" id="btn-bold" onclick="toggleFormat('bold')" data-tooltip="Bold"><b>B</b></button>
+    <button class="tb-btn" id="btn-italic" onclick="toggleFormat('italic')" data-tooltip="Italic"><i>I</i></button>
+    <button class="tb-btn" id="btn-underline" onclick="toggleFormat('underline')" data-tooltip="Underline"><u>U</u></button>
+    <button class="tb-btn" id="btn-strike" onclick="toggleFormat('strikeThrough')" data-tooltip="Strikethrough"><s>S</s></button>
+    <span class="tb-sep"></span>
+    <div class="color-btn" data-tooltip="Text Color" title="Text Color">
+      <div class="color-swatch" id="text-color-swatch" style="background:#000000"></div>
+      <input type="color" id="text-color-picker" value="#000000" onchange="applyTextColor(this.value)">
+    </div>
+    <div class="color-btn" data-tooltip="Highlight" title="Highlight">
+      <div class="color-swatch" id="hl-swatch" style="background:#ffff00"></div>
+      <input type="color" id="hl-picker" value="#ffff00" onchange="applyHighlight(this.value)">
+    </div>
+    <span class="tb-sep"></span>
+    <button class="tb-btn" id="btn-al" onclick="setAlignment('left')" data-tooltip="Align Left"><i class="fa fa-align-left"></i></button>
+    <button class="tb-btn" id="btn-ac" onclick="setAlignment('center')" data-tooltip="Center"><i class="fa fa-align-center"></i></button>
+    <button class="tb-btn" id="btn-ar" onclick="setAlignment('right')" data-tooltip="Align Right"><i class="fa fa-align-right"></i></button>
+    <button class="tb-btn" id="btn-aj" onclick="setAlignment('justify')" data-tooltip="Justify"><i class="fa fa-align-justify"></i></button>
+    <span class="tb-sep"></span>
+    <button class="tb-btn" onclick="execCmd('insertUnorderedList')" data-tooltip="Bullet List"><i class="fa fa-list-ul"></i></button>
+    <button class="tb-btn" onclick="execCmd('insertOrderedList')" data-tooltip="Numbered List"><i class="fa fa-list-ol"></i></button>
+    <button class="tb-btn" onclick="execCmd('indent')" data-tooltip="Indent"><i class="fa fa-indent"></i></button>
+    <button class="tb-btn" onclick="execCmd('outdent')" data-tooltip="Outdent"><i class="fa fa-outdent"></i></button>
+    <span class="tb-sep"></span>
+    <button class="tb-btn" onclick="insertTable()" data-tooltip="Insert Table"><i class="fa fa-table"></i></button>
+    <button class="tb-btn" onclick="insertLink()" data-tooltip="Insert Link"><i class="fa fa-link"></i></button>
+  </div>
+
+  <!-- TAB BAR -->
+  <div id="tab-bar">
+    <div class="doc-tab active" data-id="doc-1">
+      <i class="fa fa-file-alt" style="font-size:11px"></i>
+      <span class="tab-title">Untitled 1</span>
+      <span class="tab-close" onclick="closeTab(event,'doc-1')">✕</span>
+    </div>
+    <div class="tab-add" onclick="newDocument()" title="New Document">+</div>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div id="main-layout">
+    <!-- TOOL PANEL -->
+    <div id="tool-panel">
+      <button class="tool-btn active" id="t-move" onclick="setTool('move')" title="Move">
+        <i class="fa fa-arrows-alt"></i><span class="label">Move</span>
+      </button>
+      <button class="tool-btn" id="t-text" onclick="setTool('text')" title="Text">
+        <i class="fa fa-font"></i><span class="label">Text</span>
+      </button>
+      <button class="tool-btn" id="t-crop" onclick="setTool('crop')" title="Crop">
+        <i class="fa fa-crop"></i><span class="label">Crop</span>
+      </button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" onclick="insertImage()" title="Insert Image">
+        <i class="fa fa-image"></i><span class="label">Image</span>
+      </button>
+      <button class="tool-btn" onclick="openSigModal()" title="Signature">
+        <i class="fa fa-signature"></i><span class="label">Sign</span>
+      </button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" onclick="addPage()" title="Add Page">
+        <i class="fa fa-plus"></i><span class="label">Page</span>
+      </button>
+    </div>
+
+    <!-- CANVAS -->
+    <div id="canvas-area" onclick="closeAllMenus(event)">
+      <div id="doc-canvas"></div>
+    </div>
+
+    <!-- LAYERS PANEL -->
+    <div id="layers-panel">
+      <div id="layers-header">
+        <span><i class="fa fa-layer-group" style="margin-right:6px"></i>Layers</span>
+        <button class="icon-btn" onclick="toggleLayers()" style="width:24px;height:24px;font-size:12px">✕</button>
+      </div>
+      <div id="layers-list" style="flex:1;overflow-y:auto"></div>
+      <div style="padding:8px;border-top:1px solid var(--border)">
+        <button class="btn btn-secondary" style="width:100%;font-size:12px" onclick="insertImage()">
+          <i class="fa fa-plus"></i> Add Image Layer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div id="status-bar">
+    <span class="status-item"><i class="fa fa-file-alt"></i> <span id="st-doc">Untitled 1</span></span>
+    <span class="sep">|</span>
+    <span class="status-item" id="st-pages">Page 1 / 1</span>
+    <span class="sep">|</span>
+    <span class="status-item" id="st-words">0 words</span>
+    <span class="sep">|</span>
+    <span class="status-item" id="st-zoom">100%</span>
+    <span class="sep">|</span>
+    <span class="status-item" id="st-tool">Move</span>
+    <span style="margin-left:auto" class="status-item" id="st-save">Unsaved</span>
+  </div>
+</div>
+
+<!-- ===== FLOATING SELECTION TOOLBAR ===== -->
+<div id="float-toolbar">
+  <button class="ft-btn" onclick="toggleFormat('bold')"><b>B</b></button>
+  <button class="ft-btn" onclick="toggleFormat('italic')"><i>I</i></button>
+  <button class="ft-btn" onclick="toggleFormat('underline')"><u>U</u></button>
+  <span class="ft-sep"></span>
+  <button class="ft-btn" onclick="setAlignment('left')"><i class="fa fa-align-left"></i></button>
+  <button class="ft-btn" onclick="setAlignment('center')"><i class="fa fa-align-center"></i></button>
+  <span class="ft-sep"></span>
+  <button class="ft-btn" id="ft-cut-move" onclick="mobileCutMove()" title="Cut & Move to page">✂→</button>
+  <span class="ft-sep"></span>
+  <button class="ft-btn" onclick="execCmd('copy')"><i class="fa fa-copy"></i></button>
+  <button class="ft-btn" onclick="execCmd('cut')"><i class="fa fa-cut"></i></button>
+</div>
+
+<!-- ===== CONTEXT MENU ===== -->
+<div id="ctx-menu">
+  <div class="ctx-item" id="ctx-rot90"><i class="fa fa-redo"></i> Rotate 90° CW</div>
+  <div class="ctx-item" id="ctx-rot90cc"><i class="fa fa-undo"></i> Rotate 90° CCW</div>
+  <div class="ctx-item" id="ctx-rot180"><i class="fa fa-sync"></i> Rotate 180°</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="ctx-fliph"><i class="fa fa-arrows-alt-h"></i> Flip Horizontal</div>
+  <div class="ctx-item" id="ctx-flipv"><i class="fa fa-arrows-alt-v"></i> Flip Vertical</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="ctx-dup"><i class="fa fa-copy"></i> Duplicate</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" id="ctx-del"><i class="fa fa-trash"></i> Delete</div>
+</div>
+
+<!-- ===== MOBILE BANNER ===== -->
+<div id="mobile-banner">
+  <i class="fa fa-info-circle"></i>
+  <span id="mobile-banner-txt">Select destination page and tap to paste</span>
+  <span class="close-banner" onclick="closeMobileBanner()">✕</span>
+</div>
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div id="toast-container"></div>
+
+<!-- ===== DRAG INDICATOR ===== -->
+<div class="drag-indicator" id="drag-indicator"></div>
+
+<!-- ========== MODALS ========== -->
+
+<!-- DRIVE MODAL -->
+<div class="modal-overlay hidden" id="drive-modal-overlay">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <h3><i class="fa fa-cloud" style="color:var(--accent)"></i> Google Drive</h3>
+      <button class="modal-close" onclick="closeModal('drive-modal-overlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-tabs">
+        <div class="modal-tab active" onclick="switchModalTab('drive','accounts')">Accounts</div>
+        <div class="modal-tab" onclick="switchModalTab('drive','fonts')">My Fonts</div>
+        <div class="modal-tab" onclick="switchModalTab('drive','sync')">Auto Sync</div>
+        <div class="modal-tab" onclick="switchModalTab('drive','files')">Files</div>
+      </div>
+      <div class="tab-content active" id="drive-tab-accounts">
+        <div id="drive-account-info" style="margin-bottom:16px">
+          <div id="no-account-msg" style="color:var(--text2);font-size:13px">
+            Not connected to Google Drive. Sign in to enable cloud features.
+          </div>
+          <div id="account-connected" style="display:none">
+            <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg3);border-radius:8px">
+              <div class="user-avatar" style="width:40px;height:40px;font-size:16px" id="drive-avatar">?</div>
+              <div>
+                <div id="drive-user-name" style="font-weight:600">User</div>
+                <div id="drive-user-email" style="font-size:12px;color:var(--text2)">email</div>
+              </div>
+              <button class="btn btn-secondary" style="margin-left:auto" onclick="signOut()">Sign Out</button>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="initGoogleAuth()" id="btn-connect-drive" style="width:100%">
+          <i class="fa fa-google" style="font-family:sans-serif">G</i> Connect Google Drive
+        </button>
+      </div>
+      <div class="tab-content" id="drive-tab-fonts">
+        <div style="background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.25);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--accent)">
+          📁 Auto-scan: <b>My Drive → VV_Docs → My Fonts</b>
+        </div>
+        <button class="btn btn-primary" style="width:100%;margin-bottom:12px" onclick="scanDriveFontsFolder()">
+          <i class="fa fa-sync" id="scan-icon"></i> Scan & Load All Fonts from Drive
+        </button>
+        <div id="drive-fonts-progress" style="display:none;margin-bottom:8px">
+          <div style="font-size:12px;color:var(--text2)" id="drive-fonts-progress-txt">Scanning...</div>
+          <div style="height:4px;background:var(--bg3);border-radius:2px;margin-top:6px;overflow:hidden">
+            <div id="drive-fonts-bar" style="height:100%;background:var(--accent);width:0%;transition:width .3s;border-radius:2px"></div>
+          </div>
+        </div>
+        <div id="drive-fonts-list" style="max-height:280px;overflow-y:auto">
+          <p style="font-size:12px;color:var(--text3)">Click "Scan" to load fonts from VV_Docs/My Fonts folder.</p>
+        </div>
+        <div class="form-group" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+          <label class="form-label">Or paste a Drive file link manually</label>
+          <div style="display:flex;gap:8px">
+            <input class="form-input" id="drive-font-url" placeholder="https://drive.google.com/file/d/...">
+            <button class="btn btn-secondary" onclick="loadFontFromDrive()">Load</button>
+          </div>
+        </div>
+      </div>
+      <div class="tab-content" id="drive-tab-sync">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--bg3);border-radius:8px">
+            <span style="font-size:13px">Auto Sync on Save</span>
+            <label class="toggle"><input type="checkbox" id="sync-on-save" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--bg3);border-radius:8px">
+            <span style="font-size:13px">5-min Auto Backup</span>
+            <label class="toggle"><input type="checkbox" id="sync-5min"><span class="toggle-slider"></span></label>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--bg3);border-radius:8px">
+            <span style="font-size:13px">Every Save Sync</span>
+            <label class="toggle"><input type="checkbox" id="sync-every"><span class="toggle-slider"></span></label>
+          </div>
+          <div style="padding:10px;background:var(--bg3);border-radius:8px">
+            <div style="font-size:13px;margin-bottom:8px">VV_Docs Folder</div>
+            <div id="vv-folder-status" style="font-size:12px;color:var(--text3)">Not checked</div>
+            <div class="folder-input-row" id="folder-create-row" style="display:none">
+              <input class="form-input" id="new-folder-name" placeholder="VV_Docs" value="VV_Docs">
+              <button class="btn btn-primary" onclick="createDriveFolder()">Create</button>
+            </div>
+            <button class="btn btn-secondary" style="margin-top:8px;font-size:12px" onclick="checkVVFolder()">Check Folder</button>
+          </div>
+        </div>
+      </div>
+      <div class="tab-content" id="drive-tab-files">
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <input class="form-input" id="drive-search" placeholder="Search files..." style="flex:1">
+          <button class="btn btn-primary" onclick="searchDriveFiles()"><i class="fa fa-search"></i></button>
+        </div>
+        <div id="drive-files-list" style="max-height:300px;overflow-y:auto">
+          <p style="font-size:12px;color:var(--text3)">Connect Drive to browse files.</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('drive-modal-overlay')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE MODAL -->
+<div class="modal-overlay hidden" id="save-modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fa fa-save" style="color:var(--accent3)"></i> Save Document</h3>
+      <button class="modal-close" onclick="closeModal('save-modal-overlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">File Name</label>
+        <div style="display:flex;gap:8px">
+          <input class="form-input" id="save-filename" placeholder="My Document" style="flex:1">
+          <button class="btn btn-secondary" onclick="getAIFilenames()" title="AI Suggestions">🤖 AI</button>
+        </div>
+        <div id="ai-names-list" class="ai-names" style="display:none"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Format</label>
+        <div class="save-opts">
+          <div class="save-opt selected" onclick="selectSaveFmt(this,'pdf')">
+            <div class="opt-icon">📄</div><div>PDF</div><div class="opt-label">Best quality</div>
+          </div>
+          <div class="save-opt" onclick="selectSaveFmt(this,'docx')">
+            <div class="opt-icon">📝</div><div>Word (.docx)</div><div class="opt-label">Editable</div>
+          </div>
+          <div class="save-opt" onclick="selectSaveFmt(this,'txt')">
+            <div class="opt-icon">📋</div><div>Text (.txt)</div><div class="opt-label">Plain text</div>
+          </div>
+          <div class="save-opt" onclick="selectSaveFmt(this,'html')">
+            <div class="opt-icon">🌐</div><div>HTML</div><div class="opt-label">Web format</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Save To</label>
+        <div class="save-opts">
+          <div class="save-opt selected" onclick="selectSaveDest(this,'device')">
+            <div class="opt-icon">📱</div><div>Device</div><div class="opt-label">Download</div>
+          </div>
+          <div class="save-opt" onclick="selectSaveDest(this,'drive')">
+            <div class="opt-icon">☁</div><div>Drive</div><div class="opt-label">VV_Docs folder</div>
+          </div>
+          <div class="save-opt" onclick="selectSaveDest(this,'both')">
+            <div class="opt-icon">💾</div><div>Both</div><div class="opt-label">Device + Drive</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('save-modal-overlay')">Cancel</button>
+      <button class="btn btn-success" id="btn-save-confirm" onclick="executeSave()"><i class="fa fa-save"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE MODAL -->
+<div class="modal-overlay hidden" id="share-modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fa fa-share-alt" style="color:var(--accent)"></i> Share Document</h3>
+      <button class="modal-close" onclick="closeModal('share-modal-overlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:16px">Share your document via</p>
+      <div class="share-grid">
+        <div class="share-btn2" onclick="shareVia('email')"><div class="share-icon">📧</div>Email</div>
+        <div class="share-btn2" onclick="shareVia('whatsapp')"><div class="share-icon">💬</div>WhatsApp</div>
+        <div class="share-btn2" onclick="shareVia('wabusiness')"><div class="share-icon">🏢</div>WA Business</div>
+        <div class="share-btn2" onclick="shareVia('telegram')"><div class="share-icon">✈</div>Telegram</div>
+        <div class="share-btn2" onclick="shareVia('drive')"><div class="share-icon">☁</div>Drive</div>
+        <div class="share-btn2" onclick="shareVia('chatgpt')"><div class="share-icon">🤖</div>ChatGPT</div>
+        <div class="share-btn2" onclick="shareVia('gemini')"><div class="share-icon">♊</div>Gemini</div>
+        <div class="share-btn2" onclick="shareVia('claude')"><div class="share-icon">🅐</div>Claude AI</div>
+      </div>
+      <div style="margin-top:16px">
+        <label class="form-label">Copy Link / Text</label>
+        <div style="display:flex;gap:8px">
+          <input class="form-input" id="share-link" value="Share as text..." style="flex:1" readonly>
+          <button class="btn btn-primary" onclick="copyShareLink()">Copy</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('share-modal-overlay')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- FONT MODAL -->
+<div class="modal-overlay hidden" id="font-modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fa fa-font" style="color:var(--accent2)"></i> Font Manager</h3>
+      <button class="modal-close" onclick="closeModal('font-modal-overlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-tabs">
+        <div class="modal-tab active" onclick="switchModalTab('font','upload')">Upload Font</div>
+        <div class="modal-tab" onclick="switchModalTab('font','drive')">From Drive</div>
+        <div class="modal-tab" onclick="switchModalTab('font','loaded')">Loaded Fonts</div>
+      </div>
+      <div class="tab-content active" id="font-tab-upload">
+        <div style="border:2px dashed var(--border2);border-radius:10px;padding:24px;text-align:center;margin-bottom:12px;cursor:pointer" onclick="document.getElementById('font-file-input').click()">
+          <div style="font-size:32px;margin-bottom:8px">🔤</div>
+          <div style="font-size:14px;font-weight:500">Click to upload font file</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:4px">.ttf .otf .woff .woff2</div>
+          <input type="file" id="font-file-input" accept=".ttf,.otf,.woff,.woff2" style="display:none" multiple onchange="uploadFont(this.files)">
+        </div>
+        <div id="font-upload-status"></div>
+      </div>
+      <div class="tab-content" id="font-tab-drive">
+        <div class="form-group">
+          <label class="form-label">Paste Google Drive font link</label>
+          <input class="form-input" id="font-drive-url" placeholder="https://drive.google.com/file/d/...">
+        </div>
+        <button class="btn btn-primary" onclick="loadFontFromURL(document.getElementById('font-drive-url').value)">
+          <i class="fa fa-download"></i> Load Font
+        </button>
+      </div>
+      <div class="tab-content" id="font-tab-loaded">
+        <div id="loaded-fonts-list" class="font-grid">
+          <p style="font-size:12px;color:var(--text3)">No custom fonts loaded.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SIGNATURE MODAL -->
+<div class="modal-overlay hidden" id="sig-modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fa fa-signature" style="color:var(--accent3)"></i> Draw Signature</h3>
+      <button class="modal-close" onclick="closeModal('sig-modal-overlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <canvas id="sig-canvas" width="460" height="200"></canvas>
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+        <label class="form-label" style="margin:0">Color:</label>
+        <input type="color" id="sig-color" value="#000000" style="width:36px;height:28px;cursor:pointer;border:none;background:none">
+        <label class="form-label" style="margin:0">Size:</label>
+        <input type="range" id="sig-size" min="1" max="8" value="2" style="width:80px">
+        <button class="btn btn-secondary" onclick="clearSig()" style="margin-left:auto"><i class="fa fa-eraser"></i> Clear</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('sig-modal-overlay')">Cancel</button>
+      <button class="btn btn-success" onclick="insertSignature()"><i class="fa fa-check"></i> Insert</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIND REPLACE MODAL -->
+<div class="modal-overlay hidden" id="findreplace-modal-overlay">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h3><i class="fa fa-search-plus"></i> Find & Replace</h3>
+      <button class="modal-close" onclick="closeModal('findreplace-modal-overlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Find</label>
+        <input class="form-input" id="find-input" placeholder="Search text...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Replace with</label>
+        <input class="form-input" id="replace-input" placeholder="Replacement text...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('findreplace-modal-overlay')">Cancel</button>
+      <button class="btn btn-secondary" onclick="findNext()">Find Next</button>
+      <button class="btn btn-primary" onclick="replaceAll()">Replace All</button>
+    </div>
+  </div>
+</div>
+
+<!-- WORD COUNT MODAL -->
+<div class="modal-overlay hidden" id="wc-modal-overlay">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-header">
+      <h3>Word Count</h3>
+      <button class="modal-close" onclick="closeModal('wc-modal-overlay')">✕</button>
+    </div>
+    <div class="modal-body" id="wc-content" style="font-size:14px;line-height:2"></div>
+  </div>
+</div>
+
+<!-- ======================== JAVASCRIPT ======================== -->
+<script>
+'use strict';
+
+// ===== CONFIG =====
+const CONFIG = {
+  CLIENT_ID: '442629378443-9ps48p1qn0gdeplngca3s5bfrdhqfqfc.apps.googleusercontent.com',
+  API_KEY: '',   // Add your Google API Key here
+  SCOPES: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly',
+  VV_FOLDER: 'VV_Docs',
+  ANTHROPIC_KEY: '' // Optional: your Anthropic API key for AI filename suggestions
+};
+
+// ===== STATE =====
+const State = {
+  user: null,
+  gapiLoaded: false,
+  gisLoaded: false,
+  tokenClient: null,
+  accessToken: null,
+  docs: [],
+  activeDoc: 'doc-1',
+  docCounter: 1,
+  pageCounter: {},
+  zoom: 1,
+  layersOpen: true,
+  currentTool: 'move',
+  selectedImage: null,
+  customFonts: [],
+  saveFmt: 'pdf',
+  saveDest: 'device',
+  cutContent: null,
+  cutSource: null,
+  isMobile: window.innerWidth <= 768,
+  autoBackupTimer: null,
+  vvFolderId: null,
+  darkPage: false,
+  showMargins: true,
+  allSelected: false
+};
+
+// ===== INIT =====
+window.addEventListener('load', () => {
+  initDocs();
+  setupKeyboard();
+  setupMobile();
+  loadGoogleAPIs();
+  initSigCanvas();
+  autoDetectZoom();
+  if (CONFIG.CLIENT_ID) {
+    document.getElementById('setup-warn').style.display = 'none';
+    document.getElementById('g-signin-area').style.display = 'block';
+  }
+});
+
+function loadGoogleAPIs() {
+  const script1 = document.createElement('script');
+  script1.src = 'https://accounts.google.com/gsi/client';
+  script1.onload = () => { State.gisLoaded = true; initGSI(); };
+  document.head.appendChild(script1);
+}
+
+function initGSI() {
+  if (!CONFIG.CLIENT_ID) return;
+  google.accounts.id.initialize({
+    client_id: CONFIG.CLIENT_ID,
+    callback: handleCredentialResponse,
+    auto_select: false
+  });
+  google.accounts.id.renderButton(
+    document.getElementById('g-signin-btn'),
+    { theme:'outline', size:'large', width:260, text:'sign_in_with' }
+  );
+}
+
+function handleCredentialResponse(response) {
+  const payload = parseJwt(response.credential);
+  State.user = { name: payload.name, email: payload.email, picture: payload.picture };
+  updateUserUI();
+  initOAuthClient();
+  enterApp();
+}
+
+function parseJwt(token) {
+  try {
+    return JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+  } catch { return {}; }
+}
+
+function initOAuthClient() {
+  if (!CONFIG.CLIENT_ID) return;
+  State.tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CONFIG.CLIENT_ID,
+    scope: CONFIG.SCOPES,
+    callback: (resp) => {
+      if (resp.error) return;
+      State.accessToken = resp.access_token;
+      toast('Drive connected ✓', 'success');
+      updateDriveUI();
+    }
+  });
+}
+
+function initGoogleAuth() {
+  if (!CONFIG.CLIENT_ID) {
+    toast('Add Client ID in CONFIG to use Drive', 'error');
+    return;
+  }
+  if (State.tokenClient) {
+    State.tokenClient.requestAccessToken();
+  } else {
+    initOAuthClient();
+    if (State.tokenClient) State.tokenClient.requestAccessToken();
+  }
+}
+
+function skipAuth() {
+  State.user = { name: 'Local User', email: '', picture: '' };
+  updateUserUI();
+  enterApp();
+}
+
+function enterApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').hidden = false;
+  autoDetectZoom();
+  setTimeout(() => { getAllTextLayers().forEach(tl => checkPagination(tl.closest('.a4-page'))); }, 100);
+}
+
+function updateUserUI() {
+  const av = document.getElementById('user-avatar');
+  if (State.user?.picture) {
+    av.innerHTML = `<img src="${State.user.picture}" alt="">`;
+  } else {
+    av.textContent = State.user?.name?.[0] || '?';
+  }
+  document.getElementById('drive-user-name').textContent = State.user?.name || '';
+  document.getElementById('drive-user-email').textContent = State.user?.email || '';
+  if (State.user) {
+    document.getElementById('account-connected').style.display = 'block';
+    document.getElementById('no-account-msg').style.display = 'none';
+  }
+}
+
+function updateDriveUI() {
+  if (State.accessToken) {
+    document.getElementById('btn-connect-drive').textContent = '✓ Drive Connected';
+    document.getElementById('btn-connect-drive').disabled = true;
+    // Auto-scan fonts when Drive connects
+    setTimeout(scanDriveFontsFolder, 800);
+  }
+}
+
+// ===== DRIVE FONTS AUTO-SCAN =====
+async function scanDriveFontsFolder() {
+  if (!State.accessToken) {
+    toast('Drive-ஐ முதலில் Connect செய்யுங்கள்', 'error');
+    openModal('drive-modal-overlay');
+    return;
+  }
+
+  const icon = document.getElementById('scan-icon');
+  const progress = document.getElementById('drive-fonts-progress');
+  const progressTxt = document.getElementById('drive-fonts-progress-txt');
+  const bar = document.getElementById('drive-fonts-bar');
+  const list = document.getElementById('drive-fonts-list');
+  if (!list) return;
+
+  if (icon) icon.className = 'fa fa-sync fa-spin';
+  if (progress) progress.style.display = 'block';
+  list.innerHTML = '';
+
+  try {
+    // Step 1: Find VV_Docs folder
+    if (progressTxt) progressTxt.textContent = 'VV_Docs folder தேடுகிறது...';
+    if (bar) bar.style.width = '10%';
+
+    let vvFolderId = State.vvFolderId;
+    if (!vvFolderId) {
+      const r1 = await driveGet("files?q=" + encodeURIComponent("name='VV_Docs' and mimeType='application/vnd.google-apps.folder' and trashed=false") + "&fields=files(id,name)");
+      if (r1.files && r1.files.length) vvFolderId = r1.files[0].id;
+    }
+
+    if (!vvFolderId) {
+      list.innerHTML = '<div style="color:var(--warn);font-size:13px;padding:8px">⚠ VV_Docs folder Drive-ல் இல்லை. Drive Settings → Auto Sync-ல் create செய்யுங்கள்.</div>';
+      if (progress) progress.style.display = 'none';
+      if (icon) icon.className = 'fa fa-sync';
+      return;
+    }
+    State.vvFolderId = vvFolderId;
+
+    // Step 2: Find My Fonts subfolder
+    if (progressTxt) progressTxt.textContent = 'My Fonts folder தேடுகிறது...';
+    if (bar) bar.style.width = '25%';
+
+    const r2 = await driveGet("files?q=" + encodeURIComponent("name='My Fonts' and '" + vvFolderId + "' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false") + "&fields=files(id,name)");
+
+    let fontFolderId = (r2.files && r2.files.length) ? r2.files[0].id : vvFolderId;
+
+    // Step 3: List all font files
+    if (progressTxt) progressTxt.textContent = 'Font files list எடுக்கிறது...';
+    if (bar) bar.style.width = '40%';
+
+    const fontQ = "'" + fontFolderId + "' in parents and trashed=false";
+    const r3 = await driveGet("files?q=" + encodeURIComponent(fontQ) + "&fields=files(id,name,size)&pageSize=100&orderBy=name");
+
+    // Filter font files
+    const fontFiles = (r3.files || []).filter(f => /\.(ttf|otf|woff2?)$/i.test(f.name));
+
+    if (!fontFiles.length) {
+      list.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:8px">Font files இல்லை.<br><span style="color:var(--text3);font-size:11px">VV_Docs → My Fonts folder-ல் .ttf/.otf/.woff files வையுங்கள்</span></div>';
+      if (progress) progress.style.display = 'none';
+      if (icon) icon.className = 'fa fa-sync';
+      return;
+    }
+
+    if (progressTxt) progressTxt.textContent = fontFiles.length + ' fonts கண்டுபிடிக்கப்பட்டது! Loading...';
+    if (bar) bar.style.width = '50%';
+
+    // Step 4: Load each font
+    const loaded = [], failed = [];
+    for (let i = 0; i < fontFiles.length; i++) {
+      const f = fontFiles[i];
+      const fontName = f.name.replace(/\.[^.]+$/, '');
+      if (progressTxt) progressTxt.textContent = 'Loading: ' + fontName + ' (' + (i+1) + '/' + fontFiles.length + ')';
+      if (bar) bar.style.width = (50 + (i / fontFiles.length) * 45) + '%';
+      try {
+        await loadFontFromDriveId(f.id, fontName);
+        loaded.push({ name: fontName, file: f.name });
+      } catch(e) {
+        failed.push(fontName);
+      }
+    }
+
+    if (bar) bar.style.width = '100%';
+    if (progressTxt) progressTxt.textContent = loaded.length + ' fonts loaded!' + (failed.length ? ' (' + failed.length + ' failed)' : '');
+
+    // Render list
+    list.innerHTML = '';
+    if (loaded.length) {
+      loaded.forEach(f => {
+        const item = document.createElement('div');
+        item.className = 'font-item';
+        item.style.justifyContent = 'space-between';
+        item.innerHTML =
+          '<div style="flex:1;overflow:hidden">' +
+            '<div style="font-family:\'' + f.name + '\',sans-serif;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' +
+              f.name + ' — அ ஆ இ Aa Bb 123' +
+            '</div>' +
+            '<div style="font-size:10px;color:var(--text3)">' + f.file + '</div>' +
+          '</div>' +
+          '<button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;flex-shrink:0;margin-left:8px">Apply</button>';
+        item.querySelector('button').onclick = () => applyDriveFont(f.name);
+        item.querySelector('div').onclick = () => applyDriveFont(f.name);
+        list.appendChild(item);
+      });
+    }
+    if (failed.length) {
+      const d = document.createElement('div');
+      d.style.cssText = 'margin-top:8px;font-size:11px;color:var(--danger);padding:4px';
+      d.textContent = 'Failed: ' + failed.join(', ');
+      list.appendChild(d);
+    }
+
+    toast(loaded.length + ' fonts Drive-லிருந்து loaded ✓', 'success');
+  } catch(e) {
+    list.innerHTML = '<div style="color:var(--danger);font-size:13px;padding:8px">Error: ' + e.message + '</div>';
+    toast('Font scan failed: ' + e.message, 'error');
+  }
+
+  if (icon) icon.className = 'fa fa-sync';
+  setTimeout(() => { if (progress) progress.style.display = 'none'; }, 3000);
+}
+
+async function loadFontFromDriveId(fileId, fontName) {
+  const resp = await fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media', {
+    headers: { 'Authorization': 'Bearer ' + State.accessToken }
+  });
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  const blob = await resp.blob();
+  const blobUrl = URL.createObjectURL(blob);
+  const style = document.createElement('style');
+  style.textContent = "@font-face { font-family: '" + fontName + "'; src: url('" + blobUrl + "'); font-display: swap; }";
+  document.head.appendChild(style);
+  addFontToSelector(fontName);
+  if (!State.customFonts.find(f => f.name === fontName)) {
+    State.customFonts.push({ name: fontName, url: blobUrl, source: 'drive' });
+  }
+  updateLoadedFontsList();
+}
+
+function applyDriveFont(name) {
+  const selector = document.getElementById('font-family-select');
+  addFontToSelector(name);
+  selector.value = "'" + name + "', sans-serif";
+  const sel = window.getSelection();
+  if (sel && !sel.isCollapsed) {
+    document.execCommand('fontName', false, name);
+    toast('"' + name + '" applied ✓', 'success');
+  } else {
+    toast('"' + name + '" selected — type செய்யுங்கள் ✓', 'info');
+  }
+  closeModal('drive-modal-overlay');
+}
+
+async function driveGet(path) {
+  const resp = await fetch('https://www.googleapis.com/drive/v3/' + path, {
+    headers: { 'Authorization': 'Bearer ' + State.accessToken }
+  });
+  if (!resp.ok) {
+    let msg = 'HTTP ' + resp.status;
+    try { const j = await resp.json(); msg = j.error?.message || msg; } catch(e) {}
+    throw new Error(msg);
+  }
+  return resp.json();
+}
+
+function signOut() {
+  State.user = null; State.accessToken = null;
+  document.getElementById('account-connected').style.display = 'none';
+  document.getElementById('no-account-msg').style.display = 'block';
+  if (CONFIG.CLIENT_ID) google.accounts.id.disableAutoSelect();
+  toast('Signed out', 'info');
+}
+
+// ===== DOCUMENT INIT =====
+function initDocs() {
+  State.docs = [{ id: 'doc-1', title: 'Untitled 1', pages: [] }];
+  State.pageCounter['doc-1'] = 0;
+  addPage('doc-1');
+  updateStatus();
+}
+
+function createPageEl(docId) {
+  const pageNum = (State.pageCounter[docId] || 0) + 1;
+  State.pageCounter[docId] = pageNum;
+  const pid = `page-${docId}-${pageNum}`;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'page-wrapper';
+  wrapper.dataset.doc = docId;
+  wrapper.dataset.page = pageNum;
+
+  const page = document.createElement('div');
+  page.className = 'a4-page';
+  page.id = pid;
+  page.dataset.doc = docId;
+  page.dataset.page = pageNum;
+
+  // Margin visual
+  const mv = document.createElement('div'); mv.className = 'margin-visual';
+  const ml1 = document.createElement('div'); ml1.className = 'margin-label ml-top'; ml1.textContent = '1" Top';
+  const ml2 = document.createElement('div'); ml2.className = 'margin-label ml-left'; ml2.textContent = '1" Left';
+  const ml3 = document.createElement('div'); ml3.className = 'margin-label ml-right'; ml3.textContent = '¾" Right';
+  const ml4 = document.createElement('div'); ml4.className = 'margin-label ml-bottom'; ml4.textContent = '¾" Bottom';
+  page.append(mv, ml1, ml2, ml3, ml4);
+
+  // Text layer
+  const tl = document.createElement('div');
+  tl.className = 'text-layer';
+  tl.contentEditable = 'true';
+  tl.id = `tl-${pid}`;
+  tl.dataset.doc = docId;
+  tl.dataset.page = pageNum;
+  tl.spellcheck = true;
+
+  tl.addEventListener('input', () => { debounceCheck(page); updateStatus(); updateLayers(); });
+  tl.addEventListener('keydown', (e) => handleTextKeydown(e, page));
+  tl.addEventListener('paste', (e) => handlePaste(e, page));
+  tl.addEventListener('mouseup', showFloatToolbar);
+  tl.addEventListener('touchend', () => setTimeout(showFloatToolbar, 50));
+  tl.addEventListener('focus', () => { State.lastFocusedLayer = tl; State.lastFocusedPage = page; });
+  tl.addEventListener('keyup', updateFormatButtons);
+  tl.addEventListener('click', updateFormatButtons);
+
+  page.appendChild(tl);
+
+  // Page number
+  const pn = document.createElement('div');
+  pn.className = 'page-num';
+  pn.textContent = pageNum;
+  page.appendChild(pn);
+
+  // Delete page button
+  const delBtn = document.createElement('button');
+  delBtn.className = 'del-page-btn';
+  delBtn.innerHTML = '<i class="fa fa-trash"></i>';
+  delBtn.title = 'Delete Page';
+  delBtn.onclick = () => deletePage(wrapper);
+  wrapper.appendChild(page);
+  wrapper.appendChild(delBtn);
+
+  // Drop target for mobile paste
+  page.addEventListener('click', (e) => { if (State.cutContent && !e.target.closest('.text-layer')) mobilePaste(page); });
+
+  // Setup cross-page drag
+  setupPageDrop(page);
+
+  return wrapper;
+}
+
+function addPage(docId) {
+  docId = docId || State.activeDoc;
+  const canvas = document.getElementById('doc-canvas');
+  const wrapper = createPageEl(docId);
+  // Insert add button before existing add-btn if any
+  const addBtn = canvas.querySelector('.add-page-btn-wrap');
+  if (addBtn) canvas.insertBefore(wrapper, addBtn);
+  else canvas.appendChild(wrapper);
+
+  if (!canvas.querySelector('.add-page-btn-wrap')) {
+    const addWrap = document.createElement('div');
+    addWrap.className = 'add-page-btn-wrap';
+    addWrap.style.cssText = `display:flex;justify-content:center;width:100%;transform-origin:top center;transform:scale(var(--zoom))`;
+    const addBtn2 = document.createElement('button');
+    addBtn2.className = 'add-page-btn';
+    addBtn2.innerHTML = '<i class="fa fa-plus"></i> Add New Page';
+    addBtn2.onclick = () => addPage();
+    addWrap.appendChild(addBtn2);
+    canvas.appendChild(addWrap);
+  }
+  updatePageNums();
+  updateStatus();
+  updateLayers();
+  return wrapper.querySelector('.a4-page');
+}
+
+function deletePage(wrapper) {
+  const pages = document.querySelectorAll('.page-wrapper');
+  if (pages.length <= 1) { toast('Cannot delete last page', 'error'); return; }
+  if (!confirm('Delete this page?')) return;
+  wrapper.remove();
+  updatePageNums();
+  updateStatus();
+  updateLayers();
+  toast('Page deleted', 'info');
+}
+
+function updatePageNums() {
+  const pages = document.querySelectorAll('.a4-page');
+  pages.forEach((p, i) => {
+    const n = i + 1;
+    p.dataset.page = n;
+    p.closest('.page-wrapper').dataset.page = n;
+    const pn = p.querySelector('.page-num');
+    if (pn) pn.textContent = n;
+  });
+}
+
+function getAllTextLayers() {
+  return Array.from(document.querySelectorAll('.text-layer'));
+}
+
+function getAllPages() {
+  return Array.from(document.querySelectorAll('.a4-page'));
+}
+
+// ===== AUTO PAGINATION ENGINE =====
+const paginationTimers = new WeakMap();
+
+function debounceCheck(page, delays) {
+  delays = delays || [50, 200, 500, 1000, 2000];
+  if (paginationTimers.has(page)) {
+    paginationTimers.get(page).forEach(clearTimeout);
+  }
+  const timers = delays.map(d => setTimeout(() => checkPagination(page), d));
+  paginationTimers.set(page, timers);
+}
+
+function measureTextLayerHeight(tl) {
+  const clone = tl.cloneNode(true);
+  clone.style.cssText = `
+    position:fixed;top:-99999px;left:-99999px;
+    width:${getComputedStyle(tl).width};
+    height:auto;max-height:none;overflow:visible;
+    visibility:hidden;pointer-events:none;
+    font-family:${getComputedStyle(tl).fontFamily};
+    font-size:${getComputedStyle(tl).fontSize};
+    line-height:${getComputedStyle(tl).lineHeight};
+  `;
+  document.body.appendChild(clone);
+  const h = clone.scrollHeight;
+  document.body.removeChild(clone);
+  return h;
+}
+
+function getOverflowContent(tl) {
+  const maxH = 955;
+  const children = Array.from(tl.childNodes);
+  if (!children.length) return [];
+
+  // Measure cumulative height using a temp container
+  const container = document.createElement('div');
+  container.style.cssText = `
+    position:fixed;top:-99999px;left:-99999px;
+    width:${getComputedStyle(tl).width};
+    height:auto;overflow:visible;visibility:hidden;
+    font-family:${getComputedStyle(tl).fontFamily};
+    font-size:${getComputedStyle(tl).fontSize};
+    line-height:${getComputedStyle(tl).lineHeight};
+  `;
+  document.body.appendChild(container);
+
+  let splitIdx = -1;
+  for (let i = 0; i < children.length; i++) {
+    container.appendChild(children[i].cloneNode(true));
+    if (container.scrollHeight > maxH) {
+      splitIdx = i;
+      break;
+    }
+  }
+  document.body.removeChild(container);
+
+  if (splitIdx === -1) return [];
+  return children.slice(splitIdx);
+}
+
+function checkPagination(page) {
+  if (!page) return;
+  const tl = page.querySelector('.text-layer');
+  if (!tl) return;
+
+  const actualH = measureTextLayerHeight(tl);
+  if (actualH <= 955) return;
+
+  const overflowNodes = getOverflowContent(tl);
+  if (!overflowNodes.length) return;
+
+  const nextPage = getOrCreateNextPage(page);
+  const nextTl = nextPage.querySelector('.text-layer');
+
+  // Move overflow nodes to top of next page
+  const frag = document.createDocumentFragment();
+  overflowNodes.forEach(n => frag.appendChild(n));
+
+  if (nextTl.firstChild) {
+    nextTl.insertBefore(frag, nextTl.firstChild);
+  } else {
+    nextTl.appendChild(frag);
+  }
+
+  // Recursively check next page
+  debounceCheck(nextPage, [100, 300, 600]);
+  updateStatus();
+  updateLayers();
+}
+
+function getOrCreateNextPage(page) {
+  const wrapper = page.closest('.page-wrapper');
+  let nextWrapper = wrapper.nextElementSibling;
+  while (nextWrapper && nextWrapper.classList.contains('add-page-btn-wrap')) {
+    nextWrapper = nextWrapper.nextElementSibling;
+  }
+  if (nextWrapper && nextWrapper.classList.contains('page-wrapper')) {
+    return nextWrapper.querySelector('.a4-page');
+  }
+  // Create new page
+  const docId = page.dataset.doc || State.activeDoc;
+  const newWrapper = createPageEl(docId);
+  const addBtnWrap = document.querySelector('.add-page-btn-wrap');
+  if (addBtnWrap) {
+    document.getElementById('doc-canvas').insertBefore(newWrapper, addBtnWrap);
+  } else {
+    document.getElementById('doc-canvas').appendChild(newWrapper);
+  }
+  updatePageNums();
+  return newWrapper.querySelector('.a4-page');
+}
+
+function handlePaste(e, page) {
+  e.preventDefault();
+  const data = e.clipboardData;
+  let html = data.getData('text/html');
+  let text = data.getData('text/plain');
+
+  if (html) {
+    // Clean HTML
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    // Remove dangerous elements
+    div.querySelectorAll('script,style,meta,link').forEach(el => el.remove());
+    // Insert clean HTML
+    document.execCommand('insertHTML', false, div.innerHTML);
+  } else if (text) {
+    text.split('\n').forEach((line, i) => {
+      if (i > 0) document.execCommand('insertParagraph', false);
+      document.execCommand('insertText', false, line);
+    });
+  }
+  debounceCheck(page, [50, 200, 500, 1000, 2000]);
+}
+
+// ===== PAGE BREAK =====
+function insertPageBreak() {
+  const page = State.lastFocusedPage;
+  if (!page) { toast('Click on a page first', 'info'); return; }
+  const tl = page.querySelector('.text-layer');
+  if (!tl) return;
+  document.execCommand('insertParagraph', false);
+  // Force overflow check immediately to push content to next page
+  const nextPage = getOrCreateNextPage(page);
+  const nextTl = nextPage.querySelector('.text-layer');
+  nextTl.focus();
+  toast('Page break inserted', 'info');
+}
+
+// ===== KEYBOARD HANDLERS =====
+function handleTextKeydown(e, page) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    debounceCheck(page, [50, 200, 500]);
+  }
+  if (e.key === 'Backspace' || e.key === 'Delete') {
+    debounceCheck(page, [100]);
+  }
+}
+
+function setupKeyboard() {
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+    if (e.key === 'Escape') {
+      closeAllMenus();
+      deselect();
+    }
+    if (e.ctrlKey || e.metaKey) {
+      switch(e.key.toLowerCase()) {
+        case 'n': e.preventDefault(); newDocument(); break;
+        case 's': e.preventDefault(); quickSave(); break;
+        case 'p': e.preventDefault(); printDoc(); break;
+        case 'a': if (e.target.classList.contains('text-layer')) break; e.preventDefault(); selectAll(); break;
+        case '+': case '=': e.preventDefault(); zoomIn(); break;
+        case '-': e.preventDefault(); zoomOut(); break;
+        case '0': e.preventDefault(); zoomFit(); break;
+        case 'h': e.preventDefault(); findReplace(); break;
+      }
+    }
+    if (e.key === 'Delete' && State.allSelected) {
+      clearAllContent();
+    }
+    if (e.key === 'Delete' && State.selectedImage) {
+      deleteSelectedImage();
+    }
+  });
+}
+
+// ===== FORMAT COMMANDS =====
+function execCmd(cmd, val) {
+  document.execCommand(cmd, false, val || null);
+  updateFormatButtons();
+}
+
+function toggleFormat(cmd) {
+  document.execCommand(cmd, false, null);
+  updateFormatButtons();
+}
+
+function setFont(family) {
+  document.execCommand('fontName', false, family);
+}
+
+function setFontSize(size) {
+  document.execCommand('fontSize', false, 7);
+  const sel = window.getSelection();
+  if (sel.rangeCount > 0) {
+    const span = document.createElement('span');
+    span.style.fontSize = size + 'pt';
+    try {
+      const range = sel.getRangeAt(0);
+      range.surroundContents(span);
+    } catch(e) {}
+  }
+}
+
+function applyTextColor(color) {
+  document.execCommand('foreColor', false, color);
+  document.getElementById('text-color-swatch').style.background = color;
+}
+
+function applyHighlight(color) {
+  document.execCommand('hiliteColor', false, color);
+  document.getElementById('hl-swatch').style.background = color;
+}
+
+function setAlignment(align) {
+  const cmds = { left:'justifyLeft', center:'justifyCenter', right:'justifyRight', justify:'justifyFull' };
+  document.execCommand(cmds[align], false, null);
+  ['al','ac','ar','aj'].forEach(k => document.getElementById('btn-'+k)?.classList.remove('active'));
+  document.getElementById('btn-a'+align[0])?.classList.add('active');
+}
+
+function setLineSpacing(val) {
+  const sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  const range = sel.getRangeAt(0);
+  const container = range.commonAncestorContainer;
+  const block = container.nodeType === 3 ? container.parentElement : container;
+  const paras = block.querySelectorAll('p,div') || [block];
+  (paras.length ? [...paras] : [block]).forEach(p => { p.style.lineHeight = val; });
+}
+
+function clearFormatting() {
+  document.execCommand('removeFormat', false, null);
+  toast('Formatting cleared', 'info');
+}
+
+function updateFormatButtons() {
+  ['bold','italic','underline','strikeThrough'].forEach(cmd => {
+    const btn = document.getElementById(`btn-${cmd === 'strikeThrough' ? 'strike' : cmd}`);
+    if (btn) btn.classList.toggle('active', document.queryCommandState(cmd));
+  });
+}
+
+// ===== SELECT ALL =====
+function selectAll() {
+  State.allSelected = true;
+  document.querySelectorAll('.a4-page').forEach(p => p.style.outline = '3px solid var(--accent)');
+  updateStatus('All pages selected');
+  toast('All pages selected ✓', 'success');
+  document.getElementById('status-bar').querySelector('#st-words').textContent = 'All pages selected';
+}
+
+function clearAllContent() {
+  if (!State.allSelected) return;
+  getAllTextLayers().forEach(tl => { tl.innerHTML = ''; });
+  getAllPages().forEach(p => {
+    p.querySelectorAll('.img-overlay').forEach(img => img.remove());
+  });
+  // Remove extra pages
+  const pages = document.querySelectorAll('.page-wrapper');
+  for (let i = 1; i < pages.length; i++) pages[i].remove();
+  deselect();
+  toast('All content cleared', 'info');
+  updateStatus();
+  updateLayers();
+}
+
+function deselect() {
+  State.allSelected = false;
+  document.querySelectorAll('.a4-page').forEach(p => p.style.outline = '');
+}
+
+// ===== FLOATING TOOLBAR =====
+function showFloatToolbar() {
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed || !sel.toString().trim()) {
+    hideFloatToolbar();
+    return;
+  }
+  const ft = document.getElementById('float-toolbar');
+  const range = sel.getRangeAt(0);
+  const rect = range.getBoundingClientRect();
+  ft.classList.add('show');
+  const top = rect.top - ft.offsetHeight - 8 + window.scrollY;
+  const left = rect.left + (rect.width / 2) - (ft.offsetWidth / 2) + window.scrollX;
+  ft.style.top = Math.max(4, top) + 'px';
+  ft.style.left = Math.max(4, Math.min(left, window.innerWidth - ft.offsetWidth - 4)) + 'px';
+  // Show mobile cut-move button
+  document.getElementById('ft-cut-move').style.display = State.isMobile ? 'flex' : 'none';
+}
+
+function hideFloatToolbar() {
+  document.getElementById('float-toolbar').classList.remove('show');
+}
+
+document.addEventListener('mousedown', (e) => {
+  if (!e.target.closest('#float-toolbar')) {
+    setTimeout(() => { const s = window.getSelection(); if (!s || s.isCollapsed) hideFloatToolbar(); }, 50);
+  }
+});
+
+// ===== MOBILE CUT/PASTE =====
+function mobileCutMove() {
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed) return;
+  State.cutContent = sel.toString();
+  const range = sel.getRangeAt(0);
+  State.cutRange = range.cloneContents();
+  range.deleteContents();
+  hideFloatToolbar();
+  showMobileBanner('Scroll to destination page and tap to paste');
+}
+
+function mobilePaste(page) {
+  if (!State.cutContent) return;
+  const tl = page.querySelector('.text-layer');
+  if (!tl) return;
+  tl.focus();
+  const sel = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(tl);
+  range.collapse(false);
+  sel.removeAllRanges();
+  sel.addRange(range);
+  if (State.cutRange) {
+    range.insertNode(State.cutRange.cloneNode(true));
+  } else {
+    document.execCommand('insertText', false, State.cutContent);
+  }
+  State.cutContent = null;
+  State.cutRange = null;
+  closeMobileBanner();
+  debounceCheck(page);
+  toast('Text pasted ✓', 'success');
+}
+
+function showMobileBanner(msg) {
+  const b = document.getElementById('mobile-banner');
+  document.getElementById('mobile-banner-txt').textContent = msg;
+  b.classList.add('show');
+}
+
+function closeMobileBanner() {
+  document.getElementById('mobile-banner').classList.remove('show');
+  if (!State.cutContent) { State.cutContent = null; State.cutRange = null; }
+}
+
+// ===== ZOOM =====
+function setZoom(z) {
+  State.zoom = Math.max(0.1, Math.min(3, z));
+  document.getElementById('doc-canvas').style.setProperty('--zoom', State.zoom);
+  document.getElementById('doc-canvas').style.transform = `scale(${State.zoom})`;
+
+  const ca = document.getElementById('canvas-area');
+  const A4w = 794 * State.zoom;
+  const A4h = 1123 * State.zoom;
+  ca.style.minWidth = (A4w + 64) + 'px';
+
+  document.getElementById('st-zoom').textContent = Math.round(State.zoom * 100) + '%';
+}
+
+function zoomIn() { setZoom(State.zoom + 0.1); }
+function zoomOut() { setZoom(State.zoom - 0.1); }
+function zoomFit() { autoDetectZoom(); }
+
+function autoDetectZoom() {
+  const ca = document.getElementById('canvas-area');
+  if (!ca) return;
+  const sw = ca.clientWidth || window.innerWidth;
+  const toolW = State.isMobile ? 0 : 48;
+  const layersW = (State.layersOpen && !State.isMobile) ? 220 : 0;
+  const available = sw - toolW - layersW - 64;
+  const z = Math.min(1, available / 794);
+  setZoom(Math.max(0.3, z));
+}
+
+// ===== LAYERS PANEL =====
+function toggleLayers() {
+  State.layersOpen = !State.layersOpen;
+  const lp = document.getElementById('layers-panel');
+  if (State.isMobile) {
+    lp.classList.toggle('mobile-open', State.layersOpen);
+    lp.classList.toggle('closed', !State.layersOpen);
+  } else {
+    lp.classList.toggle('closed', !State.layersOpen);
+  }
+  setTimeout(autoDetectZoom, 320);
+  updateLayers();
+}
+
+function updateLayers() {
+  const list = document.getElementById('layers-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  // Text layers (one per page)
+  getAllPages().forEach((page, i) => {
+    const item = document.createElement('div');
+    item.className = 'layer-item';
+    item.innerHTML = `
+      <div class="layer-thumb" style="font-size:16px">📝</div>
+      <div class="layer-name">Text - Page ${i+1}</div>
+      <div class="layer-lock">🔒</div>
+    `;
+    item.onclick = () => page.querySelector('.text-layer')?.focus();
+    list.appendChild(item);
+
+    // Image layers on this page
+    page.querySelectorAll('.img-overlay').forEach((img, j) => {
+      const imgItem = document.createElement('div');
+      imgItem.className = 'layer-item';
+      const thumbImg = img.querySelector('img');
+      imgItem.innerHTML = `
+        <div class="layer-thumb">${thumbImg ? `<img src="${thumbImg.src}" style="width:100%;height:100%;object-fit:cover">` : '🖼'}</div>
+        <div class="layer-name">Image ${j+1} - P${i+1}</div>
+        <div class="layer-actions">
+          <button class="layer-act-btn" title="Move Up">▲</button>
+          <button class="layer-act-btn" title="Move Down">▼</button>
+        </div>
+      `;
+      imgItem.querySelector('button:first-child').onclick = (e) => { e.stopPropagation(); moveImageLayer(img, 'up'); };
+      imgItem.querySelector('button:last-child').onclick = (e) => { e.stopPropagation(); moveImageLayer(img, 'down'); };
+      imgItem.onclick = () => selectImage(img);
+      list.appendChild(imgItem);
+    });
+  });
+}
+
+function moveImageLayer(img, dir) {
+  const parent = img.parentElement;
+  if (dir === 'up' && img.previousElementSibling) {
+    parent.insertBefore(img, img.previousElementSibling);
+  } else if (dir === 'down' && img.nextElementSibling) {
+    parent.insertBefore(img.nextElementSibling, img);
+  }
+  updateLayers();
+}
+
+// ===== IMAGE HANDLING =====
+function insertImage() {
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'image/*';
+  inp.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const targetPage = State.lastFocusedPage || getAllPages()[0];
+      createImageOverlay(ev.target.result, targetPage);
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+
+function createImageOverlay(src, page) {
+  const overlay = document.createElement('div');
+  overlay.className = 'img-overlay';
+  // Default size
+  const maxW = 400, maxH = 300;
+  overlay.style.cssText = `width:200px;height:150px;left:96px;top:96px;`;
+
+  const img = document.createElement('img');
+  img.src = src;
+  img.draggable = false;
+  overlay.appendChild(img);
+
+  // Resize handles
+  const handles = ['tl','tc','tr','ml','mr','bl','bc','br'];
+  handles.forEach(h => {
+    const hEl = document.createElement('div');
+    hEl.className = `resize-handle rh-${h}`;
+    hEl.dataset.handle = h;
+    overlay.appendChild(hEl);
+  });
+
+  // Rotate handle
+  const rh = document.createElement('div');
+  rh.className = 'rotate-handle';
+  rh.innerHTML = '↻';
+  overlay.appendChild(rh);
+
+  page.appendChild(overlay);
+  setupImageDrag(overlay, page);
+  setupResizeHandles(overlay, page);
+  setupRotateHandle(overlay, rh);
+  overlay.addEventListener('contextmenu', (e) => { e.preventDefault(); showCtxMenu(e, overlay); });
+  overlay.addEventListener('click', (e) => { e.stopPropagation(); selectImage(overlay); });
+
+  selectImage(overlay);
+  updateLayers();
+  toast('Image inserted ✓', 'success');
+}
+
+function selectImage(img) {
+  document.querySelectorAll('.img-overlay').forEach(i => i.classList.remove('selected'));
+  img.classList.add('selected');
+  State.selectedImage = img;
+}
+
+function deselect() {
+  State.allSelected = false;
+  document.querySelectorAll('.a4-page').forEach(p => p.style.outline = '');
+  document.querySelectorAll('.img-overlay').forEach(i => i.classList.remove('selected'));
+  State.selectedImage = null;
+}
+
+function deleteSelectedImage() {
+  if (State.selectedImage) {
+    State.selectedImage.remove();
+    State.selectedImage = null;
+    updateLayers();
+    toast('Image deleted', 'info');
+  }
+}
+
+function setupImageDrag(overlay, page) {
+  let startX, startY, startL, startT, dragPage;
+
+  const onMove = (cx, cy) => {
+    let newL = startL + (cx - startX);
+    let newT = startT + (cy - startY);
+
+    // Check which page we're over
+    const allPages = getAllPages();
+    for (const p of allPages) {
+      const rect = p.getBoundingClientRect();
+      const zoomedRect = {
+        left: rect.left,
+        right: rect.right,
+        top: rect.top,
+        bottom: rect.bottom
+      };
+      if (cx >= zoomedRect.left && cx <= zoomedRect.right && cy >= zoomedRect.top && cy <= zoomedRect.bottom) {
+        if (p !== dragPage) {
+          // Move image to new page
+          p.appendChild(overlay);
+          dragPage = p;
+          // Recalculate position relative to new page
+          const pageRect = p.getBoundingClientRect();
+          const scale = State.zoom;
+          newL = (cx - pageRect.left) / scale - overlay.offsetWidth / 2;
+          newT = (cy - pageRect.top) / scale - overlay.offsetHeight / 2;
+          startX = cx; startY = cy;
+          startL = newL; startT = newT;
+        }
+        break;
+      }
+    }
+
+    // Clamp to page boundaries
+    const pw = dragPage.offsetWidth;
+    const ph = dragPage.offsetHeight;
+    const ow = overlay.offsetWidth;
+    const oh = overlay.offsetHeight;
+    newL = Math.max(0, Math.min(pw - ow, newL));
+    newT = Math.max(0, Math.min(ph - oh, newT));
+
+    overlay.style.left = newL + 'px';
+    overlay.style.top = newT + 'px';
+  };
+
+  overlay.addEventListener('mousedown', (e) => {
+    if (e.target.classList.contains('resize-handle') || e.target.classList.contains('rotate-handle')) return;
+    e.preventDefault();
+    dragPage = overlay.closest('.a4-page');
+    startX = e.clientX; startY = e.clientY;
+    startL = parseInt(overlay.style.left) || 0;
+    startT = parseInt(overlay.style.top) || 0;
+
+    const moveH = (ev) => onMove(ev.clientX, ev.clientY);
+    const upH = () => { document.removeEventListener('mousemove', moveH); document.removeEventListener('mouseup', upH); updateLayers(); };
+    document.addEventListener('mousemove', moveH);
+    document.addEventListener('mouseup', upH);
+  });
+
+  overlay.addEventListener('touchstart', (e) => {
+    if (e.target.classList.contains('resize-handle') || e.target.classList.contains('rotate-handle')) return;
+    e.preventDefault();
+    dragPage = overlay.closest('.a4-page');
+    const t = e.touches[0];
+    startX = t.clientX; startY = t.clientY;
+    startL = parseInt(overlay.style.left) || 0;
+    startT = parseInt(overlay.style.top) || 0;
+
+    const moveH = (ev) => { ev.preventDefault(); const tc = ev.touches[0]; onMove(tc.clientX, tc.clientY); };
+    const upH = () => { overlay.removeEventListener('touchmove', moveH); overlay.removeEventListener('touchend', upH); updateLayers(); };
+    overlay.addEventListener('touchmove', moveH, {passive:false});
+    overlay.addEventListener('touchend', upH);
+  });
+}
+
+function setupResizeHandles(overlay) {
+  overlay.querySelectorAll('.resize-handle').forEach(handle => {
+    let startX, startY, startW, startH, startL, startT;
+    const h = handle.dataset.handle;
+
+    const onMove = (cx, cy) => {
+      const dx = cx - startX, dy = cy - startY;
+      let nw = startW, nh = startH, nl = startL, nt = startT;
+
+      if (h.includes('r')) nw = Math.max(40, startW + dx);
+      if (h.includes('l')) { nw = Math.max(40, startW - dx); nl = startL + (startW - nw); }
+      if (h.includes('b')) nh = Math.max(30, startH + dy);
+      if (h.includes('t')) { nh = Math.max(30, startH - dy); nt = startT + (startH - nh); }
+
+      // Clamp to page
+      const page = overlay.closest('.a4-page');
+      nl = Math.max(0, Math.min(nl, page.offsetWidth - nw));
+      nt = Math.max(0, Math.min(nt, page.offsetHeight - nh));
+
+      overlay.style.width = nw + 'px';
+      overlay.style.height = nh + 'px';
+      overlay.style.left = nl + 'px';
+      overlay.style.top = nt + 'px';
+    };
+
+    const start = (cx, cy) => {
+      startX = cx; startY = cy;
+      startW = overlay.offsetWidth; startH = overlay.offsetHeight;
+      startL = parseInt(overlay.style.left) || 0;
+      startT = parseInt(overlay.style.top) || 0;
+    };
+
+    handle.addEventListener('mousedown', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      start(e.clientX, e.clientY);
+      const mm = (ev) => onMove(ev.clientX, ev.clientY);
+      const mu = () => { document.removeEventListener('mousemove', mm); document.removeEventListener('mouseup', mu); };
+      document.addEventListener('mousemove', mm);
+      document.addEventListener('mouseup', mu);
+    });
+
+    handle.addEventListener('touchstart', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const t = e.touches[0];
+      start(t.clientX, t.clientY);
+      const mm = (ev) => { ev.preventDefault(); const tc = ev.touches[0]; onMove(tc.clientX, tc.clientY); };
+      const mu = () => { handle.removeEventListener('touchmove', mm); handle.removeEventListener('touchend', mu); };
+      handle.addEventListener('touchmove', mm, {passive:false});
+      handle.addEventListener('touchend', mu);
+    });
+  });
+}
+
+function setupRotateHandle(overlay, rh) {
+  rh.addEventListener('mousedown', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    const rect = overlay.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    let currentRot = getCurrentRotation(overlay);
+
+    const mm = (ev) => {
+      const angle = Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180 / Math.PI + 90;
+      const existingTransform = overlay.style.transform.replace(/rotate\([^)]*\)/, '').trim();
+      overlay.style.transform = `${existingTransform} rotate(${angle}deg)`;
+    };
+    const mu = () => { document.removeEventListener('mousemove', mm); document.removeEventListener('mouseup', mu); };
+    document.addEventListener('mousemove', mm);
+    document.addEventListener('mouseup', mu);
+  });
+}
+
+function getCurrentRotation(el) {
+  const m = el.style.transform.match(/rotate\(([^)]+)deg\)/);
+  return m ? parseFloat(m[1]) : 0;
+}
+
+// Context Menu
+function showCtxMenu(e, img) {
+  State.selectedImage = img;
+  const menu = document.getElementById('ctx-menu');
+  menu.style.left = Math.min(e.clientX, window.innerWidth - 200) + 'px';
+  menu.style.top = Math.min(e.clientY, window.innerHeight - 200) + 'px';
+  menu.classList.add('show');
+
+  document.getElementById('ctx-rot90').onclick = () => { rotateImg(img, 90); hideCtxMenu(); };
+  document.getElementById('ctx-rot90cc').onclick = () => { rotateImg(img, -90); hideCtxMenu(); };
+  document.getElementById('ctx-rot180').onclick = () => { rotateImg(img, 180); hideCtxMenu(); };
+  document.getElementById('ctx-fliph').onclick = () => { flipImg(img, 'h'); hideCtxMenu(); };
+  document.getElementById('ctx-flipv').onclick = () => { flipImg(img, 'v'); hideCtxMenu(); };
+  document.getElementById('ctx-dup').onclick = () => { dupImg(img); hideCtxMenu(); };
+  document.getElementById('ctx-del').onclick = () => { img.remove(); State.selectedImage = null; updateLayers(); hideCtxMenu(); };
+}
+
+function hideCtxMenu() { document.getElementById('ctx-menu').classList.remove('show'); }
+
+function rotateImg(img, deg) {
+  const cur = getCurrentRotation(img);
+  const existingTransform = img.style.transform.replace(/rotate\([^)]*\)/, '').trim();
+  img.style.transform = `${existingTransform} rotate(${cur + deg}deg)`;
+}
+
+function flipImg(img, dir) {
+  const cur = img.style.transform || '';
+  if (dir === 'h') {
+    img.style.transform = cur.includes('scaleX(-1)') ? cur.replace('scaleX(-1)', '') : cur + ' scaleX(-1)';
+  } else {
+    img.style.transform = cur.includes('scaleY(-1)') ? cur.replace('scaleY(-1)', '') : cur + ' scaleY(-1)';
+  }
+}
+
+function dupImg(img) {
+  const clone = img.cloneNode(true);
+  const l = parseInt(img.style.left) || 0;
+  const t = parseInt(img.style.top) || 0;
+  clone.style.left = (l + 20) + 'px';
+  clone.style.top = (t + 20) + 'px';
+  img.closest('.a4-page').appendChild(clone);
+  setupImageDrag(clone, clone.closest('.a4-page'));
+  setupResizeHandles(clone);
+  const rh = clone.querySelector('.rotate-handle');
+  if (rh) setupRotateHandle(clone, rh);
+  clone.addEventListener('contextmenu', (e) => { e.preventDefault(); showCtxMenu(e, clone); });
+  clone.addEventListener('click', (e) => { e.stopPropagation(); selectImage(clone); });
+  updateLayers();
+}
+
+// ===== PAGE DROP SETUP =====
+function setupPageDrop(page) {
+  page.addEventListener('dragover', (e) => { e.preventDefault(); page.classList.add('page-drag-target'); });
+  page.addEventListener('dragleave', () => page.classList.remove('page-drag-target'));
+  page.addEventListener('drop', (e) => {
+    e.preventDefault();
+    page.classList.remove('page-drag-target');
+    // Text drop
+    const text = e.dataTransfer.getData('text/plain');
+    if (text) {
+      const tl = page.querySelector('.text-layer');
+      tl.focus();
+      const range = caretRangeFromPoint(e.clientX, e.clientY) || getEndRange(tl);
+      if (range) {
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        document.execCommand('insertText', false, text);
+      }
+      debounceCheck(page);
+    }
+  });
+}
+
+function caretRangeFromPoint(x, y) {
+  if (document.caretRangeFromPoint) return document.caretRangeFromPoint(x, y);
+  if (document.caretPositionFromPoint) {
+    const pos = document.caretPositionFromPoint(x, y);
+    if (!pos) return null;
+    const range = document.createRange();
+    range.setStart(pos.offsetNode, pos.offset);
+    range.collapse(true);
+    return range;
+  }
+  return null;
+}
+
+function getEndRange(el) {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  range.collapse(false);
+  return range;
+}
+
+// Desktop text drag
+document.addEventListener('mouseup', () => {
+  const sel = window.getSelection();
+  if (sel && !sel.isCollapsed && sel.toString().trim()) {
+    const text = sel.toString();
+    document.querySelectorAll('.text-layer').forEach(tl => {
+      tl.draggable = true;
+      tl.ondragstart = (e) => { e.dataTransfer.setData('text/plain', text); e.dataTransfer.setData('source', 'text-drag'); };
+      tl.ondragend = () => { tl.draggable = false; };
+    });
+  }
+});
+
+// Auto-scroll canvas on drag
+let autoScrollTimer = null;
+document.addEventListener('dragover', (e) => {
+  const ca = document.getElementById('canvas-area');
+  const rect = ca.getBoundingClientRect();
+  const threshold = 80;
+  clearTimeout(autoScrollTimer);
+  if (e.clientY - rect.top < threshold) {
+    autoScrollTimer = setInterval(() => { ca.scrollTop -= 8; }, 16);
+  } else if (rect.bottom - e.clientY < threshold) {
+    autoScrollTimer = setInterval(() => { ca.scrollTop += 8; }, 16);
+  }
+});
+document.addEventListener('dragend', () => { clearInterval(autoScrollTimer); });
+document.addEventListener('drop', () => { clearInterval(autoScrollTimer); });
+
+// ===== SIGNATURE =====
+let sigCtx, sigDrawing = false;
+
+function initSigCanvas() {
+  const canvas = document.getElementById('sig-canvas');
+  if (!canvas) return;
+  sigCtx = canvas.getContext('2d');
+  sigCtx.strokeStyle = '#000';
+  sigCtx.lineWidth = 2;
+  sigCtx.lineCap = 'round';
+  sigCtx.lineJoin = 'round';
+
+  const getPos = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if (e.touches) {
+      return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
+    }
+    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+  };
+
+  const startDraw = (e) => { e.preventDefault(); sigDrawing = true; const p = getPos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); };
+  const draw = (e) => { e.preventDefault(); if (!sigDrawing) return; const p = getPos(e); sigCtx.strokeStyle = document.getElementById('sig-color').value; sigCtx.lineWidth = document.getElementById('sig-size').value; sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); };
+  const stopDraw = () => { sigDrawing = false; };
+
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', stopDraw);
+  canvas.addEventListener('mouseleave', stopDraw);
+  canvas.addEventListener('touchstart', startDraw, {passive:false});
+  canvas.addEventListener('touchmove', draw, {passive:false});
+  canvas.addEventListener('touchend', stopDraw);
+}
+
+function clearSig() {
+  const canvas = document.getElementById('sig-canvas');
+  sigCtx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function insertSignature() {
+  const canvas = document.getElementById('sig-canvas');
+  const dataUrl = canvas.toDataURL('image/png');
+  const targetPage = State.lastFocusedPage || getAllPages()[0];
+  createImageOverlay(dataUrl, targetPage);
+  closeModal('sig-modal-overlay');
+  clearSig();
+}
+
+// ===== FONT MANAGEMENT =====
+function uploadFont(files) {
+  Array.from(files).forEach(file => {
+    const ext = file.name.split('.').pop().toLowerCase();
+    const name = file.name.replace(/\.[^.]+$/, '');
+    const statusEl = document.getElementById('font-upload-status');
+    statusEl.innerHTML = `<div>⏳ Loading ${name}...</div>`;
+
+    // Method 1: Object URL
+    try {
+      const url = URL.createObjectURL(file);
+      registerFont(name, url, statusEl);
+    } catch(e) {
+      // Method 2: ArrayBuffer
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const blob = new Blob([ev.target.result], {type: file.type});
+          const url = URL.createObjectURL(blob);
+          registerFont(name, url, statusEl);
+        } catch(e2) {
+          // Method 3: Base64
+          const r2 = new FileReader();
+          r2.onload = (ev2) => registerFont(name, ev2.target.result, statusEl);
+          r2.readAsDataURL(file);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+  });
+}
+
+function registerFont(name, url, statusEl) {
+  const style = document.createElement('style');
+  style.textContent = `@font-face { font-family: '${name}'; src: url('${url}'); }`;
+  document.head.appendChild(style);
+
+  // Add to font selector
+  addFontToSelector(name);
+  State.customFonts.push({ name, url });
+
+  if (statusEl) statusEl.innerHTML = `<div style="color:var(--accent3)">✓ ${name} loaded!</div>`;
+  updateLoadedFontsList();
+  toast(`Font "${name}" loaded ✓`, 'success');
+}
+
+function addFontToSelector(name) {
+  const sel = document.getElementById('font-family-select');
+  // Remove duplicates
+  for (let i = 0; i < sel.options.length; i++) {
+    if (sel.options[i].textContent === name) return;
+  }
+  const opt = document.createElement('option');
+  opt.value = `'${name}', sans-serif`;
+  opt.textContent = name;
+  opt.style.fontFamily = `'${name}', sans-serif`;
+  sel.insertBefore(opt, sel.options[0]);
+  sel.value = `'${name}', sans-serif`;
+}
+
+function loadFontFromDrive() {
+  const url = document.getElementById('drive-font-url').value.trim();
+  loadFontFromURL(url);
+}
+
+function loadFontFromURL(url) {
+  if (!url) { toast('Enter a URL', 'error'); return; }
+  // Convert Drive share URL to direct download
+  const directUrl = convertDriveUrl(url);
+  const name = 'DriveFont_' + Date.now();
+  toast('Loading font...', 'info');
+
+  // Try fetch + blob approach
+  fetch(directUrl)
+    .then(r => r.blob())
+    .then(blob => {
+      const blobUrl = URL.createObjectURL(blob);
+      // Try to guess name from URL
+      const urlName = url.split('/').pop().split('?')[0].replace(/\.[^.]+$/, '') || name;
+      registerFont(urlName || name, blobUrl, null);
+    })
+    .catch(() => {
+      // Direct CSS import as fallback
+      registerFont(name, directUrl, null);
+    });
+}
+
+function convertDriveUrl(url) {
+  const m = url.match(/\/d\/([^/]+)/);
+  if (m) return `https://drive.google.com/uc?export=download&id=${m[1]}`;
+  return url;
+}
+
+function updateLoadedFontsList() {
+  const list = document.getElementById('loaded-fonts-list');
+  if (!list) return;
+  if (!State.customFonts.length) {
+    list.innerHTML = '<p style="font-size:12px;color:var(--text3)">No custom fonts loaded.</p>';
+    return;
+  }
+  list.innerHTML = '';
+  State.customFonts.forEach(f => {
+    const item = document.createElement('div');
+    item.className = 'font-item';
+    item.innerHTML = `
+      <div class="font-preview" style="font-family:'${f.name}'">Aa Bb Cc 123</div>
+      <div class="font-name">${f.name}</div>
+    `;
+    item.onclick = () => { setFont(`'${f.name}', sans-serif`); addFontToSelector(f.name); };
+    list.appendChild(item);
+  });
+}
+
+// ===== MENU TOGGLE =====
+function toggleMenu(id) {
+  const dd = document.getElementById(id);
+  const wasOpen = dd.classList.contains('show');
+  closeAllMenus();
+  if (!wasOpen) dd.classList.add('show');
+}
+
+function closeAllMenus(e) {
+  if (e && e.target.closest('.menu-item')) return;
+  document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('show'));
+  hideCtxMenu();
+}
+
+document.addEventListener('click', closeAllMenus);
+
+// ===== TOOL SELECTION =====
+function setTool(t) {
+  State.currentTool = t;
+  document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`t-${t}`)?.classList.add('active');
+  document.getElementById('st-tool').textContent = t.charAt(0).toUpperCase() + t.slice(1);
+  // Update cursor
+  const ca = document.getElementById('canvas-area');
+  ca.style.cursor = t === 'crop' ? 'crosshair' : t === 'text' ? 'text' : 'default';
+}
+
+// ===== NEW DOCUMENT =====
+function newDocument() {
+  const id = 'doc-' + (++State.docCounter);
+  const title = `Untitled ${State.docCounter}`;
+  State.docs.push({ id, title, pages: [] });
+  State.pageCounter[id] = 0;
+
+  // Add tab
+  const tabBar = document.getElementById('tab-bar');
+  const addBtn = tabBar.querySelector('.tab-add');
+  const tab = document.createElement('div');
+  tab.className = 'doc-tab';
+  tab.dataset.id = id;
+  tab.innerHTML = `<i class="fa fa-file-alt" style="font-size:11px"></i><span class="tab-title">${title}</span><span class="tab-close" onclick="closeTab(event,'${id}')">✕</span>`;
+  tab.onclick = () => switchTab(id);
+  tabBar.insertBefore(tab, addBtn);
+
+  switchTab(id);
+  toast(`New document: ${title}`, 'info');
+}
+
+function switchTab(id) {
+  State.activeDoc = id;
+  document.querySelectorAll('.doc-tab').forEach(t => t.classList.toggle('active', t.dataset.id === id));
+  const doc = State.docs.find(d => d.id === id);
+
+  // Clear canvas and rebuild for this doc
+  const canvas = document.getElementById('doc-canvas');
+  canvas.innerHTML = '';
+
+  if (!State.pageCounter[id]) {
+    State.pageCounter[id] = 0;
+    addPage(id);
+  } else {
+    // Restore saved pages (simplified - in production would serialize/deserialize)
+    addPage(id);
+  }
+  document.getElementById('st-doc').textContent = doc?.title || id;
+  updateStatus();
+}
+
+function closeTab(e, id) {
+  e.stopPropagation();
+  const tabs = document.querySelectorAll('.doc-tab');
+  if (tabs.length <= 1) { toast('Cannot close last tab', 'error'); return; }
+  document.querySelector(`.doc-tab[data-id="${id}"]`)?.remove();
+  State.docs = State.docs.filter(d => d.id !== id);
+  if (State.activeDoc === id) {
+    const remaining = document.querySelector('.doc-tab');
+    if (remaining) switchTab(remaining.dataset.id);
+  }
+}
+
+// ===== STATUS BAR =====
+function updateStatus(msg) {
+  const pages = getAllPages().length;
+  document.getElementById('st-pages').textContent = `Page 1 / ${pages}`;
+
+  const words = getAllTextLayers().reduce((acc, tl) => {
+    return acc + (tl.innerText.trim().split(/\s+/).filter(Boolean).length || 0);
+  }, 0);
+  document.getElementById('st-words').textContent = msg || `${words} words`;
+}
+
+// ===== SAVE MODAL =====
+function openSaveModal() { openModal('save-modal-overlay'); }
+
+function selectSaveFmt(el, fmt) {
+  document.querySelectorAll('.save-opts .save-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  State.saveFmt = fmt;
+}
+
+function selectSaveDest(el, dest) {
+  el.closest('.form-group').querySelectorAll('.save-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  State.saveDest = dest;
+}
+
+async function getAIFilenames() {
+  const content = getAllTextLayers().map(tl => tl.innerText).join(' ').trim().slice(0, 500);
+  if (!content) { toast('Add some content first', 'info'); return; }
+
+  const btn = document.querySelector('[onclick="getAIFilenames()"]');
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled = true;
+
+  let names = [];
+  if (CONFIG.ANTHROPIC_KEY) {
+    try {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': CONFIG.ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({
+          model: 'claude-haiku-20240307',
+          max_tokens: 200,
+          messages: [{ role: 'user', content: `Suggest 10 short filename options (English only, no extension) for a document about: "${content}". Return ONLY a JSON array of strings.` }]
+        })
+      });
+      const data = await resp.json();
+      const text = data.content[0].text;
+      names = JSON.parse(text.replace(/```json?|```/g, '').trim());
+    } catch {}
+  }
+
+  if (!names.length) {
+    // Offline fallback
+    const words = content.split(/\s+/).filter(w => w.length > 3).slice(0, 20);
+    names = [
+      'My Document', 'Important Notes', 'Draft Report', 'Project Brief',
+      'Document_' + new Date().toLocaleDateString().replace(/\//g,'-'),
+      words.slice(0,3).join('_') || 'Document',
+      'Notes_' + new Date().toLocaleDateString(),
+      'Report_Draft', 'Final_Document', 'Work_Notes'
+    ];
+  }
+
+  const list = document.getElementById('ai-names-list');
+  list.style.display = 'flex';
+  list.innerHTML = names.map(n => `<div class="ai-name" onclick="selectAIName('${n.replace(/'/g,"\\'")}')"><i class="fa fa-file-alt" style="color:var(--text3)"></i> ${n}</div>`).join('');
+  btn.innerHTML = '🤖 AI';
+  btn.disabled = false;
+}
+
+function selectAIName(name) {
+  document.getElementById('save-filename').value = name;
+  document.getElementById('ai-names-list').style.display = 'none';
+}
+
+async function executeSave() {
+  const filename = document.getElementById('save-filename').value || 'VV_Document';
+  const fmt = State.saveFmt;
+  const dest = State.saveDest;
+
+  closeModal('save-modal-overlay');
+  toast('Saving...', 'info');
+
+  try {
+    if (dest === 'device' || dest === 'both') {
+      if (fmt === 'pdf') await saveAsPDF(filename);
+      else if (fmt === 'docx') saveAsDocx(filename);
+      else if (fmt === 'txt') saveAsTxt(filename);
+      else if (fmt === 'html') saveAsHTML(filename);
+    }
+    if (dest === 'drive' || dest === 'both') {
+      await saveToDrive(filename, fmt);
+    }
+    document.getElementById('st-save').textContent = 'Saved ✓';
+    toast('Saved successfully ✓', 'success');
+  } catch (e) {
+    toast('Save failed: ' + e.message, 'error');
+  }
+}
+
+function quickSave() { openSaveModal(); }
+
+async function saveAsPDF(filename) {
+  const { jsPDF } = window.jspdf;
+  const pages = getAllPages();
+  const doc = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait' });
+
+  for (let i = 0; i < pages.length; i++) {
+    if (i > 0) doc.addPage();
+    const page = pages[i];
+
+    // Hide UI elements for capture
+    page.querySelectorAll('.margin-visual,.margin-label,.del-page-btn').forEach(el => el.style.opacity = '0');
+    page.querySelectorAll('.resize-handle,.rotate-handle').forEach(el => el.style.display = 'none');
+
+    const canvas = await html2canvas(page, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff' });
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    doc.addImage(imgData, 'JPEG', 0, 0, 595.28, 841.89);
+
+    // Restore
+    page.querySelectorAll('.margin-visual,.margin-label').forEach(el => el.style.opacity = '');
+    page.querySelectorAll('.resize-handle,.rotate-handle').forEach(el => el.style.display = '');
+  }
+  doc.save(filename + '.pdf');
+}
+
+function saveAsDocx(filename) {
+  // Simple HTML-based docx using blob
+  let html = '<html><head><meta charset="utf-8"><style>body{font-family:Times New Roman;font-size:12pt;margin:1in 0.75in;}</style></head><body>';
+  getAllTextLayers().forEach((tl, i) => {
+    if (i > 0) html += '<div style="page-break-before:always"></div>';
+    html += tl.innerHTML;
+  });
+  html += '</body></html>';
+
+  // Wrap in MHTML for Word compatibility
+  const blob = new Blob([html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename + '.doc';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function saveAsTxt(filename) {
+  const text = getAllTextLayers().map(tl => tl.innerText).join('\n\n--- Page Break ---\n\n');
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename + '.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function saveAsHTML(filename) {
+  let html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${filename}</title>`;
+  html += '<style>body{font-family:serif;max-width:800px;margin:0 auto;padding:1in;}</style></head><body>';
+  getAllTextLayers().forEach((tl, i) => {
+    if (i > 0) html += '<hr style="page-break-before:always">';
+    html += tl.innerHTML;
+  });
+  html += '</body></html>';
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename + '.html';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function saveToDrive(filename, fmt) {
+  if (!State.accessToken) {
+    toast('Connect Drive first', 'error');
+    return;
+  }
+  // Ensure VV_Docs folder exists
+  if (!State.vvFolderId) {
+    await checkVVFolder();
+  }
+  if (!State.vvFolderId) {
+    toast('VV_Docs folder not found. Create it in Drive settings.', 'error');
+    return;
+  }
+
+  // Get content as text for Drive upload
+  const text = getAllTextLayers().map(tl => tl.innerText).join('\n\n--- Page ---\n\n');
+  const blob = new Blob([text], { type: 'text/plain' });
+
+  const metadata = {
+    name: filename + (fmt === 'txt' ? '.txt' : '.html'),
+    parents: [State.vvFolderId],
+    mimeType: 'text/plain'
+  };
+
+  const form = new FormData();
+  form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+  form.append('file', blob);
+
+  const resp = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + State.accessToken },
+    body: form
+  });
+
+  if (!resp.ok) throw new Error('Drive upload failed: ' + resp.status);
+  const result = await resp.json();
+  toast(`Saved to Drive: ${result.name} ✓`, 'success');
+}
+
+// ===== DRIVE OPERATIONS =====
+async function checkVVFolder() {
+  if (!State.accessToken) return;
+  document.getElementById('vv-folder-status').textContent = 'Checking...';
+  try {
+    const resp = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='VV_Docs' and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id,name)`, {
+      headers: { 'Authorization': 'Bearer ' + State.accessToken }
+    });
+    const data = await resp.json();
+    if (data.files && data.files.length > 0) {
+      State.vvFolderId = data.files[0].id;
+      document.getElementById('vv-folder-status').textContent = '✓ VV_Docs folder found: ' + State.vvFolderId;
+      document.getElementById('folder-create-row').style.display = 'none';
+    } else {
+      document.getElementById('vv-folder-status').textContent = '✕ VV_Docs folder not found';
+      document.getElementById('folder-create-row').style.display = 'flex';
+    }
+  } catch(e) {
+    document.getElementById('vv-folder-status').textContent = 'Error checking folder';
+  }
+}
+
+async function createDriveFolder() {
+  if (!State.accessToken) { toast('Connect Drive first', 'error'); return; }
+  const name = document.getElementById('new-folder-name').value || 'VV_Docs';
+  try {
+    const resp = await fetch('https://www.googleapis.com/drive/v3/files', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + State.accessToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name, mimeType: 'application/vnd.google-apps.folder' })
+    });
+    const data = await resp.json();
+    State.vvFolderId = data.id;
+    document.getElementById('vv-folder-status').textContent = `✓ Folder "${name}" created`;
+    document.getElementById('folder-create-row').style.display = 'none';
+    toast(`Folder "${name}" created ✓`, 'success');
+  } catch(e) {
+    toast('Failed to create folder', 'error');
+  }
+}
+
+async function searchDriveFiles() {
+  if (!State.accessToken) { toast('Connect Drive first', 'error'); return; }
+  const query = document.getElementById('drive-search').value;
+  const list = document.getElementById('drive-files-list');
+  list.innerHTML = '<div class="spinner" style="margin:20px auto"></div>';
+
+  try {
+    const q = query ? `name contains '${query}'` : 'trashed=false';
+    const resp = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,size,mimeType,modifiedTime)&pageSize=20`, {
+      headers: { 'Authorization': 'Bearer ' + State.accessToken }
+    });
+    const data = await resp.json();
+    list.innerHTML = '';
+    if (!data.files || !data.files.length) {
+      list.innerHTML = '<p style="font-size:12px;color:var(--text3);padding:8px">No files found</p>';
+      return;
+    }
+    data.files.forEach(f => {
+      const icon = f.mimeType.includes('document') ? '📄' : f.mimeType.includes('image') ? '🖼' : '📁';
+      const size = f.size ? (parseInt(f.size) / 1024).toFixed(1) + ' KB' : '';
+      const item = document.createElement('div');
+      item.className = 'drive-file';
+      item.innerHTML = `
+        <div class="file-icon">${icon}</div>
+        <div class="file-info">
+          <div class="file-name">${f.name}</div>
+          <div class="file-size">${size} • ${new Date(f.modifiedTime).toLocaleDateString()}</div>
+        </div>
+        <button class="btn btn-secondary" style="padding:4px 8px;font-size:11px" onclick="openDriveFile('${f.id}','${f.name.replace(/'/g,"\\'")}','${f.mimeType}')">Open</button>
+      `;
+      list.appendChild(item);
+    });
+  } catch(e) {
+    list.innerHTML = '<p style="font-size:12px;color:var(--danger)">Error loading files</p>';
+  }
+}
+
+async function openDriveFile(id, name, mimeType) {
+  if (!State.accessToken) return;
+  try {
+    const resp = await fetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`, {
+      headers: { 'Authorization': 'Bearer ' + State.accessToken }
+    });
+
+    if (mimeType.includes('image')) {
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const targetPage = State.lastFocusedPage || getAllPages()[0];
+      createImageOverlay(url, targetPage);
+    } else {
+      const text = await resp.text();
+      const tl = (State.lastFocusedPage || getAllPages()[0]).querySelector('.text-layer');
+      tl.innerHTML = text;
+      debounceCheck(tl.closest('.a4-page'));
+    }
+    closeModal('drive-modal-overlay');
+    toast(`Opened: ${name} ✓`, 'success');
+  } catch(e) {
+    toast('Failed to open file', 'error');
+  }
+}
+
+// ===== SHARE =====
+function shareVia(platform) {
+  const text = getAllTextLayers().map(tl => tl.innerText).join('\n').trim().slice(0, 1000);
+  const urls = {
+    email: `mailto:?subject=Shared Document&body=${encodeURIComponent(text)}`,
+    whatsapp: `https://wa.me/?text=${encodeURIComponent(text)}`,
+    wabusiness: `https://wa.me/?text=${encodeURIComponent(text)}`,
+    telegram: `https://t.me/share/url?url=&text=${encodeURIComponent(text)}`,
+    chatgpt: `https://chat.openai.com/`,
+    gemini: `https://gemini.google.com/`,
+    claude: `https://claude.ai/`
+  };
+  if (platform === 'drive') { saveToDrive('Shared_Document', 'txt'); return; }
+  if (urls[platform]) window.open(urls[platform], '_blank');
+  document.getElementById('share-link').value = text.slice(0, 200) + (text.length > 200 ? '...' : '');
+}
+
+function copyShareLink() {
+  navigator.clipboard.writeText(document.getElementById('share-link').value);
+  toast('Copied to clipboard ✓', 'success');
+}
+
+// ===== INSERT FUNCTIONS =====
+function insertTable() {
+  const rows = parseInt(prompt('Rows:', '3') || '3');
+  const cols = parseInt(prompt('Columns:', '3') || '3');
+  let html = '<table border="1" style="border-collapse:collapse;width:100%;margin:8px 0">';
+  for (let r = 0; r < rows; r++) {
+    html += '<tr>';
+    for (let c = 0; c < cols; c++) {
+      html += `<td style="padding:6px 8px;border:1px solid #ccc;min-width:40px">&nbsp;</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</table>';
+  document.execCommand('insertHTML', false, html);
+  debounceCheck(State.lastFocusedPage);
+}
+
+function insertHRule() {
+  document.execCommand('insertHTML', false, '<hr style="border:none;border-top:1px solid #ccc;margin:12px 0">');
+}
+
+function insertLink() {
+  const url = prompt('URL:');
+  if (url) document.execCommand('createLink', false, url);
+}
+
+function toggleRulers() {
+  State.showMargins = !State.showMargins;
+  document.querySelectorAll('.margin-visual,.margin-label').forEach(el => {
+    el.style.display = State.showMargins ? '' : 'none';
+  });
+}
+
+function toggleDarkPage() {
+  State.darkPage = !State.darkPage;
+  document.querySelectorAll('.a4-page').forEach(p => {
+    p.style.background = State.darkPage ? '#1e1e1e' : '';
+    const tl = p.querySelector('.text-layer');
+    if (tl) tl.style.color = State.darkPage ? '#e0e0e0' : '';
+  });
+}
+
+// ===== WORD COUNT =====
+function wordCount() {
+  const tls = getAllTextLayers();
+  let totalWords = 0, totalChars = 0, totalLines = 0;
+  tls.forEach(tl => {
+    const t = tl.innerText;
+    totalWords += t.trim().split(/\s+/).filter(Boolean).length;
+    totalChars += t.length;
+    totalLines += t.split('\n').length;
+  });
+  document.getElementById('wc-content').innerHTML = `
+    <div>📄 Pages: ${getAllPages().length}</div>
+    <div>📝 Words: ${totalWords}</div>
+    <div>🔤 Characters: ${totalChars}</div>
+    <div>📏 Lines: ${totalLines}</div>
+  `;
+  openModal('wc-modal-overlay');
+}
+
+// ===== FIND & REPLACE =====
+function findReplace() { openModal('findreplace-modal-overlay'); }
+
+function findNext() {
+  const term = document.getElementById('find-input').value;
+  if (!term) return;
+  const found = window.find(term, false, false, true, false, false, false);
+  if (!found) toast('Not found', 'info');
+}
+
+function replaceAll() {
+  const find = document.getElementById('find-input').value;
+  const rep = document.getElementById('replace-input').value;
+  if (!find) return;
+  let count = 0;
+  getAllTextLayers().forEach(tl => {
+    const orig = tl.innerHTML;
+    const regex = new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    tl.innerHTML = tl.innerHTML.replace(regex, () => { count++; return rep; });
+  });
+  toast(`Replaced ${count} occurrence(s)`, 'success');
+  closeModal('findreplace-modal-overlay');
+}
+
+// ===== PRINT =====
+function printDoc() { window.print(); }
+
+// ===== MODAL HELPERS =====
+function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+function openDriveModal() { openModal('drive-modal-overlay'); }
+function openSigModal() { openModal('sig-modal-overlay'); setTimeout(initSigCanvas, 100); }
+function openFontModal() { openModal('font-modal-overlay'); }
+function openShareModal() { openModal('share-modal-overlay'); }
+
+function switchModalTab(modal, tab) {
+  const prefix = modal === 'drive' ? 'drive-tab-' : 'font-tab-';
+  document.querySelectorAll(`[id^="${prefix}"]`).forEach(t => t.classList.remove('active'));
+  document.getElementById(prefix + tab)?.classList.add('active');
+  // Update tab buttons
+  const tabs = document.querySelectorAll(`.modal-tabs .modal-tab`);
+  tabs.forEach(t => {
+    if (t.textContent.toLowerCase().includes(tab.toLowerCase().split('-')[0])) t.classList.add('active');
+    else t.classList.remove('active');
+  });
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.add('hidden'); });
+});
+
+// ===== TOAST =====
+function toast(msg, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  const icons = { success: '✓', error: '✕', info: 'ℹ' };
+  t.innerHTML = `<span>${icons[type] || 'ℹ'}</span><span>${msg}</span>`;
+  container.appendChild(t);
+  setTimeout(() => { t.style.animation = 'slideOut .3s ease forwards'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+// ===== MOBILE SETUP =====
+function setupMobile() {
+  State.isMobile = window.innerWidth <= 768;
+  if (State.isMobile) {
+    State.layersOpen = false;
+    document.getElementById('layers-panel').classList.add('closed');
+  }
+  window.addEventListener('resize', () => {
+    State.isMobile = window.innerWidth <= 768;
+    autoDetectZoom();
+  });
+}
+
+// ===== AUTO BACKUP =====
+document.getElementById('sync-5min')?.addEventListener('change', function() {
+  if (this.checked) {
+    State.autoBackupTimer = setInterval(() => {
+      if (State.accessToken) saveToDrive('AutoBackup_' + Date.now(), 'txt').catch(() => {});
+    }, 5 * 60 * 1000);
+  } else {
+    clearInterval(State.autoBackupTimer);
+  }
+});
+
+// ===== USER MENU =====
+function showUserMenu() {
+  if (!State.user) return;
+  const info = `${State.user.name}\n${State.user.email || 'Local mode'}`;
+  alert(info);
+}
+
+// ===== DARK PAGE TOGGLE =====
+
+// Close menus on canvas click
+document.getElementById('canvas-area')?.addEventListener('click', (e) => {
+  if (!e.target.closest('.img-overlay') && !e.target.closest('.text-layer')) {
+    deselect();
+    hideFloatToolbar();
+  }
+  closeAllMenus();
+  hideCtxMenu();
+});
+
+// ===== INITIAL FOCUS =====
+setTimeout(() => {
+  const firstTl = document.querySelector('.text-layer');
+  if (firstTl) {
+    firstTl.focus();
+    State.lastFocusedLayer = firstTl;
+    State.lastFocusedPage = firstTl.closest('.a4-page');
+  }
+}, 100);
+
+// ===== CANVAS SCROLL AUTO =====
+document.getElementById('canvas-area')?.addEventListener('scroll', () => {
+  // Track which page is most visible
+  const ca = document.getElementById('canvas-area');
+  const caRect = ca.getBoundingClientRect();
+  let bestPage = null, bestOverlap = 0;
+  getAllPages().forEach((p, i) => {
+    const pr = p.getBoundingClientRect();
+    const top = Math.max(pr.top, caRect.top);
+    const bottom = Math.min(pr.bottom, caRect.bottom);
+    const overlap = Math.max(0, bottom - top);
+    if (overlap > bestOverlap) { bestOverlap = overlap; bestPage = i + 1; }
+  });
+  if (bestPage) document.getElementById('st-pages').textContent = `Page ${bestPage} / ${getAllPages().length}`;
+});
+
+// ===== DYNAMIC DOC CANVAS SIZING =====
+function updateCanvasSize() {
+  const canvas = document.getElementById('doc-canvas');
+  const pages = getAllPages().length;
+  const totalH = pages * (1123 * State.zoom) + (pages - 1) * 24 * State.zoom + 100;
+  canvas.style.minHeight = totalH + 'px';
+}
+
+// Re-run on mutation
+const canvasObserver = new MutationObserver(() => { updateStatus(); updateLayers(); });
+const docCanvas = document.getElementById('doc-canvas');
+if (docCanvas) canvasObserver.observe(docCanvas, { childList: true, subtree: false });
+
+console.log('%c VV Docs ProMax God Mode ✦ Loaded ', 'background:#7c3aed;color:white;font-size:16px;padding:8px 16px;border-radius:8px');
+</script>
+</body>
+</html>
